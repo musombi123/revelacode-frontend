@@ -1,4 +1,5 @@
 [build]
+  base = "revelacode-frontend"
   command = "npm run build"
   publish = "dist"
 
