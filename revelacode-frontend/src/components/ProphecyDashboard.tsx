@@ -1,29 +1,51 @@
-// src/components/ProphecyDashboard.jsx
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 
-const ProphecyDashboard = () => {
-  const [data, setData] = useState(null);
+interface Prophecy {
+  id: string;
+  verse: string;
+  meaning: string;
+}
+
+const ProphecyDashboard: React.FC = () => {
+  const [prophecies, setProphecies] = useState<Prophecy[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    fetch('https://revelacode-backend.onrender.com/api/prophecies')
-      .then(res => res.json())
-      .then(json => {
-        setData(json);
+    const fetchProphecies = async () => {
+      try {
+        const res = await fetch(`${import.meta.env.VITE_API_URL}/api/prophecies`);
+        if (!res.ok) throw new Error("Failed to fetch prophecies");
+        const data = await res.json();
+        setProphecies(data);
+      } catch (err: any) {
+        setError(err.message || "Something went wrong");
+      } finally {
         setLoading(false);
-      })
-      .catch(err => {
-        console.error("Failed to fetch:", err);
-        setLoading(false);
-      });
+      }
+    };
+
+    fetchProphecies();
   }, []);
 
-  if (loading) return <p>Loading prophecy...</p>;
+  if (loading) return <div>⏳ Loading prophecies...</div>;
+  if (error) return <div>❌ Error: {error}</div>;
 
   return (
     <div>
-      <h1>Prophecy Dashboard</h1>
-      <pre>{JSON.stringify(data, null, 2)}</pre>
+      <h2 className="text-2xl font-bold mb-4">📜 Prophecy Dashboard</h2>
+      {prophecies.length === 0 ? (
+        <p>No prophecies found.</p>
+      ) : (
+        <ul className="space-y-4">
+          {prophecies.map((prophecy) => (
+            <li key={prophecy.id} className="bg-white p-4 rounded shadow">
+              <p className="text-lg font-semibold">📖 {prophecy.verse}</p>
+              <p className="text-gray-700 mt-2">💡 {prophecy.meaning}</p>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 };
