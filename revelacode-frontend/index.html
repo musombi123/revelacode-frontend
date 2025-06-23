@@ -89,90 +89,40 @@
   </main>
 
   <script>
-    // Theme Toggle
+    // Theme toggle
     const toggleButton = document.getElementById('themeToggle');
     toggleButton.addEventListener('click', () => {
       document.body.classList.toggle('dark');
       localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');
     });
-
-    // Apply saved theme on load
+  
     window.addEventListener('load', () => {
-      if (localStorage.getItem('theme') === 'dark') {
-        document.body.classList.add('dark');
-      }
-
-      // Load Bible
-      fetch("kjv.json")
+      // ✅ Add fetch call for Bible here:
+      fetch("data/kjv.json")
         .then(res => res.json())
         .then(bible => {
-          const book = Object.keys(bible)[0]; // First book (e.g., Genesis)
+          const book = Object.keys(bible)[0]; // e.g. Genesis
           const chapter = bible[book]["1"];   // Chapter 1
+  
           let html = `<h3>${book} Chapter 1</h3>`;
           for (const verse in chapter) {
-            html += `<p><strong>${verse}:</strong> ${chapter[verse]}</p>`;
+            html += `<p><strong>${verse}</strong>: ${chapter[verse]}</p>`;
           }
+  
           document.getElementById("bibleContent").innerHTML = html;
         })
         .catch(err => {
           document.getElementById("bibleContent").innerHTML = "❌ Could not load Bible.";
-          console.error(err);
+          console.error("Bible load error:", err);
         });
-    });
-
-    // Decode Prophecy
-    const decodeBtn = document.getElementById('decodeBtn');
-    const decodeInput = document.getElementById('decodeInput');
-    const resultDiv = document.getElementById('result');
-
-    decodeBtn.addEventListener('click', async () => {
-      const query = decodeInput.value.trim();
-      if (!query) {
-        resultDiv.innerHTML = '<p>⚠️ Please enter a prophecy to decode.</p>';
-        return;
-      }
-
-      decodeBtn.disabled = true;
-      decodeBtn.textContent = 'Decoding...';
-      resultDiv.innerHTML = '<p>🔄 Decoding prophecy, please wait...</p>';
-
-      try {
-        const res = await fetch('https://revelacode-backend.onrender.com/decode', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ text: query })
-        });
-        if (!res.ok) throw new Error('Network response failed');
-
-        const data = await res.json();
-        resultDiv.innerHTML = `
-          <p>📅 <strong>Date:</strong> ${data.date || 'Unknown'}</p>
-          <p>✅ <strong>Status:</strong> ${data.status || 'Pending'}</p>
-          <p>🧠 <strong>Meaning:</strong> ${data.meaning || 'N/A'}</p>
-          <p>🌐 <strong>Evidence:</strong> ${data.evidence || 'None found'}</p>
-        `;
-      } catch (err) {
-        resultDiv.innerHTML = '<p>❌ Failed to decode prophecy. Try again later.</p>';
-        console.error(err);
-      } finally {
-        decodeBtn.disabled = false;
-        decodeBtn.textContent = 'Decode';
+  
+      // Optional: Theme setup
+      if (localStorage.getItem('theme') === 'dark') {
+        document.body.classList.add('dark');
       }
     });
-
-    // Show Sections
-    function showSection(idToShow) {
-      const sections = document.querySelectorAll('main section.card');
-      sections.forEach(sec => sec.style.display = 'none');
-
-      if (idToShow === 'decodeSection') {
-        document.getElementById('decodeSection').style.display = 'block';
-        document.getElementById('resultSection').style.display = 'block';
-      } else {
-        const target = document.getElementById(idToShow);
-        if (target) target.style.display = 'block';
-      }
-    }
+  
+    // Section switch, decode logic...
   </script>
 </body>
 </html>
