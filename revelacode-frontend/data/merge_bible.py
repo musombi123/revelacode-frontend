@@ -1,13 +1,13 @@
 import os
 import json
 
-source_folder = "bible-books"   # 📁 Folder with individual JSON books
-output_file = "kjv.json"        # 📦 Final joined file
+source_folder = "."         # 📁 Folder with individual JSON files
+output_file = "kjv.json"    # 📦 Output file
 
-bible_data = {}
+bible_data = {}  # ✅ You forgot this line
 
 for filename in os.listdir(source_folder):
-    if filename.endswith(".json"):
+    if filename.endswith(".json") and filename != output_file:
         book_name = filename.replace(".json", "")
         file_path = os.path.join(source_folder, filename)
 
