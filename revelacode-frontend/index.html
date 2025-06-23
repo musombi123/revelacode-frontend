@@ -14,15 +14,22 @@
       <button id="themeToggle">Toggle Theme</button>
     </header>
 
+    <!-- Navigation Buttons -->
+    <nav style="grid-column: 1 / -1; margin-bottom: 1rem;">
+      <button onclick="showSection('decodeSection')">Prophecy</button>
+      <button onclick="showSection('bibleSection')">Bible</button>
+      <button onclick="showAllSections()">Dashboard</button>
+    </nav>
+
     <!-- Decode Panel -->
-    <section class="card">
+    <section class="card" id="decodeSection">
       <h2>Decode</h2>
       <input type="text" id="decodeInput" placeholder="Search prophecy...">
       <button id="decodeBtn">Decode</button>
     </section>
 
     <!-- Result Pane -->
-    <section class="card">
+    <section class="card" id="resultSection">
       <h2>Result Pane</h2>
       <div id="result">
         <p><strong>Date:</strong> June 23, 2025</p>
@@ -33,37 +40,37 @@
     </section>
 
     <!-- Read Bible -->
-    <section class="card">
+    <section class="card" id="bibleSection">
       <h2>Read Bible</h2>
       <p>(Offline KJV Bible Access Coming Soon)</p>
     </section>
 
     <!-- Notice -->
-    <section class="card">
+    <section class="card" id="noticeSection">
       <h2>Notice</h2>
       <p>Recent prophetic updates or alerts...</p>
     </section>
 
     <!-- Refer -->
-    <section class="card">
+    <section class="card" id="referSection">
       <h2>Refer</h2>
       <p>Saved searches, bookmarks, notes...</p>
     </section>
 
     <!-- Affrend -->
-    <section class="card">
+    <section class="card" id="affrendSection">
       <h2>Affrend</h2>
       <p>Link accounts: TikTok, WhatsApp, Facebook...</p>
     </section>
 
     <!-- Accounts -->
-    <section class="card">
+    <section class="card" id="accountSection">
       <h2>Accounts</h2>
       <p>Settings, Personality profile, Search history, Support us link...</p>
     </section>
 
     <!-- Narrator -->
-    <section class="card">
+    <section class="card" id="narratorSection">
       <h2>Narrator</h2>
       <p>(Text-to-Speech and voice decoding features coming soon)</p>
     </section>
@@ -74,42 +81,42 @@
     const decodeBtn = document.getElementById('decodeBtn');
     const decodeInput = document.getElementById('decodeInput');
     const resultDiv = document.getElementById('result');
-  
+
     toggleButton.addEventListener('click', () => {
       document.body.classList.toggle('dark');
       localStorage.setItem('theme', document.body.classList.contains('dark') ? 'dark' : 'light');
     });
-  
+
     window.addEventListener('load', () => {
       if (localStorage.getItem('theme') === 'dark') {
         document.body.classList.add('dark');
       }
     });
-  
+
     decodeBtn.addEventListener('click', async () => {
       const query = decodeInput.value.trim();
       if (!query) {
-        resultDiv.innerHTML = '<p class=\"warn\">⚠️ Please enter a prophecy to decode.</p>';
+        resultDiv.innerHTML = '<p class="warn">⚠️ Please enter a prophecy to decode.</p>';
         return;
       }
-  
+
       decodeBtn.disabled = true;
       decodeBtn.textContent = 'Decoding...';
-      resultDiv.innerHTML = '<p class=\"loading\">🔄 Decoding prophecy, please wait...</p>';
-  
+      resultDiv.innerHTML = '<p class="loading">🔄 Decoding prophecy, please wait...</p>';
+
       try {
         const res = await fetch('https://revelacode-backend.onrender.com/decode', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ text: query })
         });
-  
+
         if (!res.ok) throw new Error('Network response was not ok');
-  
+
         const data = await res.json();
-  
+
         resultDiv.innerHTML = `
-          <div class=\"success\">
+          <div class="success">
             <p><strong>📅 Date:</strong> ${data.date || 'Unknown'}</p>
             <p><strong>✅ Status:</strong> ${data.status || 'Pending'}</p>
             <p><strong>🧠 Meaning:</strong> ${data.meaning || 'N/A'}</p>
@@ -117,11 +124,26 @@
           </div>
         `;
       } catch (err) {
-        resultDiv.innerHTML = '<p class=\"error\">❌ Failed to decode prophecy. Try again later.</p>';
+        resultDiv.innerHTML = '<p class="error">❌ Failed to decode prophecy. Try again later.</p>';
       } finally {
         decodeBtn.disabled = false;
         decodeBtn.textContent = 'Decode';
       }
     });
+
+    function showSection(idToShow) {
+      const sections = document.querySelectorAll('section.card');
+      sections.forEach(sec => {
+        sec.style.display = sec.id === idToShow || (idToShow === 'decodeSection' && sec.id === 'resultSection') ? 'block' : 'none';
+      });
+    }
+
+    function showAllSections() {
+      const sections = document.querySelectorAll('section.card');
+      sections.forEach(sec => {
+        sec.style.display = 'block';
+      });
+    }
   </script>
-  
+</body>
+</html>
