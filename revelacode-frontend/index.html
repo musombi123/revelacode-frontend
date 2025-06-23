@@ -124,5 +124,19 @@
   
     // Section switch, decode logic...
   </script>
+  <script>
+  function showSection(idToShow) {
+    const sections = document.querySelectorAll('main section.card');
+    sections.forEach(sec => sec.style.display = 'none');
+
+    if (idToShow === 'decodeSection') {
+      document.getElementById('decodeSection').style.display = 'block';
+      document.getElementById('resultSection').style.display = 'block';
+    } else {
+      const target = document.getElementById(idToShow);
+      if (target) target.style.display = 'block';
+    }
+  }
+</script>
 </body>
 </html>
