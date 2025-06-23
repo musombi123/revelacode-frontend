@@ -1,28 +1,25 @@
-import json
 import os
+import json
 
-merged_bible = {}
+source_folder = "bible-books"   # 📁 Folder with individual JSON books
+output_file = "kjv.json"        # 📦 Final joined file
 
-for file in os.listdir():
-    if file.endswith(".json") and file != "Books.json":
-        book = file.replace(".json", "")
-        with open(file, "r", encoding="utf-8") as f:
-            data = json.load(f)
-            merged_bible[book] = {}
-            for key, verse_text in data.items():
-                # Expecting key like "Genesis 1:1"
-                try:
-                    parts = key.split()
-                    chapter_verse = parts[1].split(":")
-                    chapter = chapter_verse[0]
-                    verse_num = chapter_verse[1]
-                    if chapter not in merged_bible[book]:
-                        merged_bible[book][chapter] = {}
-                    merged_bible[book][chapter][verse_num] = verse_text
-                except Exception as e:
-                    print(f"⚠️ Error parsing key '{key}' in file '{file}': {e}")
+bible_data = {}
 
-with open("kjv.json", "w", encoding="utf-8") as out_file:
-    json.dump(merged_bible, out_file, indent=2)
+for filename in os.listdir(source_folder):
+    if filename.endswith(".json"):
+        book_name = filename.replace(".json", "")
+        file_path = os.path.join(source_folder, filename)
 
-print("✅ Successfully merged into kjv.json")
+        with open(file_path, 'r', encoding='utf-8') as f:
+            try:
+                content = json.load(f)
+                bible_data[book_name] = content
+            except json.JSONDecodeError:
+                print(f"❌ Error decoding {filename}")
+
+# Save combined file
+with open(output_file, 'w', encoding='utf-8') as out:
+    json.dump(bible_data, out, indent=2)
+
+print(f"✅ Merged {len(bible_data)} books into {output_file}")
