@@ -5,76 +5,174 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>RevelaCode Dashboard</title>
   <link rel="stylesheet" href="style.css">
+  <style>
+    .layout {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 2rem;
+}
+
+    nav.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  align-items: flex-start;
+  justify-content: flex-start;
+  padding: 1rem;
+}
+
+    nav.sidebar button {
+      padding: 0.75rem;
+      font-weight: bold;
+      background-color: #6200ee;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+
+    nav.sidebar button:hover {
+      background-color: #3700b3;
+    }
+
+    @media (max-width: 768px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      nav.sidebar {
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: space-around;
+      }
+    }
+    .grid-content {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1rem;
+}
+
+  .card {
+    width: 75%;
+    max-width: 900px;
+    margin-bottom: 2rem;
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeSlideIn 0.5s ease forwards;
+  }
+
+  @keyframes fadeSlideIn {
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @media (max-width: 768px) {
+    .card {
+      width: 95%;
+    }
+  }
+.card {
+  width: 30%;
+  min-width: 280px;
+  flex-grow: 1;
+  margin-bottom: 2rem;
+  opacity: 0;
+  transform: translateY(20px);
+  animation: fadeSlideIn 0.5s ease forwards;
+  display: none;
+}
+
+.card.visible {
+  display: block;
+}
+
+@keyframes fadeSlideIn {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 768px) {
+  .card {
+    width: 95%;
+  }
+}
+</style>
 </head>
 <body>
   <div class="container">
-    <!-- Header -->
-    <header class="header">
-      <h1>RevelaCode</h1>
-      <button id="themeToggle">Toggle Theme</button>
-    </header>
+  <!-- Header -->
+  <header class="header">
+    <h1>RevelaCode</h1>
+    <button id="themeToggle">Toggle Theme</button>
+  </header>
 
-    <!-- Navigation Buttons -->
-    <nav style="grid-column: 1 / -1; margin-bottom: 1rem;">
-      <button onclick="showSection('decodeSection')">Prophecy</button>
-      <button onclick="showSection('bibleSection')">Bible</button>
-      <button onclick="showAllSections()">Dashboard</button>
-    </nav>
+  <div class="layout">
+  <!-- Sidebar Navigation -->
+  <nav class="sidebar">
+  <button onclick="showSection('decodeSection')">Prophecy</button>
+  <button onclick="showSection('bibleSection')">Bible</button>
+  <button onclick="showSection('accountsSection')">Settings</button>
+  <button onclick="showSection('linkedSection')">Linked Accounts</button>
+  <button onclick="showSection('narratorSection')">Narrator</button>
+  <button onclick="showAllSections()">Dashboard</button>
+</nav>
+</div>
 
-    <!-- Decode Panel -->
-    <section class="card" id="decodeSection">
-      <h2>Decode</h2>
-      <input type="text" id="decodeInput" placeholder="Search prophecy...">
+  <main class="grid-content">
+  <section class="card visible" id="decodeSection">
+    <h2>Decode</h2>
+    <div style="display: flex; gap: 0.5rem; align-items: center;">
+      <input type="text" id="decodeInput" placeholder="Search prophecy..." style="flex: 1;">
       <button id="decodeBtn">Decode</button>
-    </section>
+    </div>
+  </section>
 
-    <!-- Result Pane -->
-    <section class="card" id="resultSection">
-      <h2>Result Pane</h2>
-      <div id="result">
-        <p><strong>Date:</strong> June 23, 2025</p>
-        <p><strong>Status:</strong> Fulfilled</p>
-        <p><strong>Meaning:</strong> Interpreted from Daniel 7...</p>
-        <p><strong>Evidence:</strong> Linked to news from CNN, Al Jazeera</p>
-      </div>
-    </section>
+  <section class="card visible" id="resultSection">
+    <h2>Result Pane</h2>
+    <div id="result">
+      <p><strong>Date:</strong> June 23, 2025</p>
+      <p><strong>Status:</strong> Fulfilled</p>
+      <p><strong>Meaning:</strong> Interpreted from Daniel 7...</p>
+      <p><strong>Evidence:</strong> Linked to news from CNN, Al Jazeera</p>
+    </div>
+  </section>
 
-    <!-- Read Bible -->
-    <section class="card" id="bibleSection">
-      <h2>Read Bible</h2>
-      <p>(Offline KJV Bible Access Coming Soon)</p>
-    </section>
+  <section class="card visible" id="bibleSection">
+    <h2>Read Bible</h2>
+    <p>(Offline KJV Bible Access Coming Soon)</p>
+  </section>
 
-    <!-- Notice -->
-    <section class="card" id="noticeSection">
-      <h2>Notice</h2>
-      <p>Recent prophetic updates or alerts...</p>
-    </section>
+  <section class="card visible" id="accountsSection">
+    <h2>Accounts</h2>
+    <p>Settings, Personality profile, Search history, Support us link...</p>
+  </section>
 
-    <!-- Refer -->
-    <section class="card" id="referSection">
-      <h2>Refer</h2>
-      <p>Saved searches, bookmarks, notes...</p>
-    </section>
+  <section class="card visible" id="linkedSection">
+    <h2>Linked Accounts</h2>
+    <p>Connect TikTok, WhatsApp, Facebook and other platforms.</p>
+  </section>
 
-    <!-- Affrend -->
-    <section class="card" id="affrendSection">
-      <h2>Affrend</h2>
-      <p>Link accounts: TikTok, WhatsApp, Facebook...</p>
-    </section>
+  <section class="card visible" id="narratorSection">
+    <h2>Narrator</h2>
+    <p>(Text-to-Speech and AI voice decoding coming soon.)</p>
+  </section>
 
-    <!-- Accounts -->
-    <section class="card" id="accountSection">
-      <h2>Accounts</h2>
-      <p>Settings, Personality profile, Search history, Support us link...</p>
-    </section>
-
-    <!-- Narrator -->
-    <section class="card" id="narratorSection">
-      <h2>Narrator</h2>
-      <p>(Text-to-Speech and voice decoding features coming soon)</p>
-    </section>
-  </div>
+  <section class="card visible" id="referSection">
+    <h2>Refer</h2>
+    <p>Saved searches, bookmarks, personal notes, and referrals.</p>
+  </section>
+</main>
+</div>
 
   <script>
     const toggleButton = document.getElementById('themeToggle');
@@ -132,14 +230,20 @@
     });
 
     function showSection(idToShow) {
-      const sections = document.querySelectorAll('section.card');
-      sections.forEach(sec => {
-        sec.style.display = sec.id === idToShow || (idToShow === 'decodeSection' && sec.id === 'resultSection') ? 'block' : 'none';
-      });
-    }
+  const sections = document.querySelectorAll('main section.card');
+  sections.forEach(sec => sec.classList.remove('visible'));
 
-    function showAllSections() {
-      const sections = document.querySelectorAll('section.card');
+  if (idToShow === 'decodeSection') {
+    document.getElementById('decodeSection').classList.add('visible');
+    document.getElementById('resultSection').classList.add('visible');
+  } else {
+    const target = document.getElementById(idToShow);
+    if (target) target.classList.add('visible');
+  }
+}
+
+function showAllSections() {
+      const sections = document.querySelectorAll('main section.card');
       sections.forEach(sec => {
         sec.style.display = 'block';
       });
