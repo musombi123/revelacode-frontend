@@ -12,22 +12,22 @@ export default function ProphecyDashboard() {
     if (!searchInput.trim()) return;
     setLoading(true);
     setDecodedOutput('');
-
+  
     try {
-      const response = await fetch('https://revelacode-backend.onrender.com/api/decode', {
+      const response = await fetch('https://revelacode-backend.onrender.com/decode', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query: searchInput })
+        body: JSON.stringify({ verse: searchInput })
       });
-
+  
       const data = await response.json();
-      setDecodedOutput(data.result || 'No result found.');
+      setDecodedOutput(data.decoded || 'No result found.');
     } catch (error) {
       setDecodedOutput('❌ Error decoding prophecy. Please try again.');
     } finally {
       setLoading(false);
     }
-  };
+  };  
 
   return (
     <Card className="p-6 space-y-4">
