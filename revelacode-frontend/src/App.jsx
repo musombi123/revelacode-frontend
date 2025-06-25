@@ -1,11 +1,7 @@
-import Dashboard from './components/Dashboard';
-
-function App() {
+export default function App() {
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <Dashboard />
+    <div className="p-4 text-center text-xl">
+      🚀 RevelaCode is live with Tailwind + React + Vite!
     </div>
-  );
+  )
 }
-
-export default App;
