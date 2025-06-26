@@ -22,7 +22,7 @@ import BibleDashboard from './BibleDashboard';
 import ProphecyDashboard from './ProphecyDashboard';
 import SettingsDashboard from './SettingsDashboard';
 import AccountDashboard from './AccountDashboard';
-import ReferenceDashboard from './ReferenceDashboard';
+import ReferentialDashboard from './ReferentialDashboard';
 
 export default function MainDashboard() {
   return (

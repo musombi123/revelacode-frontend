@@ -8,8 +8,11 @@ export default function ProphecyDashboard() {
   const [decodedOutput, setDecodedOutput] = useState('');
   const [loading, setLoading] = useState(false);
 
+  const baseUrl = import.meta.env.VITE_API_URL;
+
   const handleDecode = async () => {
-    if (!searchInput.trim()) return;
+    const trimmedInput = searchInput.trim();
+    if (!trimmedInput) return;
 
     setLoading(true);
     setDecodedOutput('');
@@ -18,14 +21,22 @@ export default function ProphecyDashboard() {
       const response = await fetch(`${baseUrl}/decode`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ verse: searchInput })
+        body: JSON.stringify({ verse: trimmedInput })
       });
-      
+
+      if (!response.ok) {
+        throw new Error(`Server returned ${response.status}`);
+      }
 
       const data = await response.json();
 
-      setDecodedOutput(data?.decoded || '⚠️ No result found or unrecognized verse.');
+      if (data?.decoded && typeof data.decoded === 'object') {
+        setDecodedOutput(JSON.stringify(data.decoded, null, 2));
+      } else {
+        setDecodedOutput('⚠️ No symbolic meaning detected.');
+      }
     } catch (error) {
+      console.error('Decode error:', error);
       setDecodedOutput('❌ Error connecting to decoder. Please try again.');
     } finally {
       setLoading(false);
