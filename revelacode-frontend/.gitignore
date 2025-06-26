@@ -1,0 +1,13 @@
+# dependencies
+node_modules/
+
+# production
+dist/
+
+# dotenv
+.env
+.env.*
+
+# system
+.DS_Store
+Thumbs.db
