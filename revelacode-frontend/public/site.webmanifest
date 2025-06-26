@@ -1,0 +1,28 @@
+{
+    "name": "RevelaCode - AI Bible Decoder",
+    "short_name": "RevelaCode",
+    "description": "Explore Biblical prophecies with AI-powered decoding and contextual tools.",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#0f172a",
+    "theme_color": "#3b82f6",
+    "icons": [
+      {
+        "src": "/favicon-192x192.png",
+        "type": "image/png",
+        "sizes": "192x192"
+      },
+      {
+        "src": "/favicon-512x512.png",
+        "type": "image/png",
+        "sizes": "512x512"
+      },
+      {
+        "src": "/apple-touch-icon.png",
+        "type": "image/png",
+        "sizes": "180x180",
+        "purpose": "any maskable"
+      }
+    ]
+  }
+  

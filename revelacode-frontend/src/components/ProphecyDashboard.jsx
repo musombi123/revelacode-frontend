@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
+import { Card, CardContent } from '@/components/ui/Card';
 
 export default function ProphecyDashboard() {
   const [searchInput, setSearchInput] = useState('');
@@ -10,24 +10,26 @@ export default function ProphecyDashboard() {
 
   const handleDecode = async () => {
     if (!searchInput.trim()) return;
+
     setLoading(true);
     setDecodedOutput('');
-  
+
     try {
-      const response = await fetch('https://revelacode-backend.onrender.com/decode', {
+      const response = await fetch(`${import.meta.env.VITE_API_BASE}/decode`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ verse: searchInput })
       });
-  
+
       const data = await response.json();
-      setDecodedOutput(data.decoded || 'No result found.');
+
+      setDecodedOutput(data?.decoded || '⚠️ No result found or unrecognized verse.');
     } catch (error) {
-      setDecodedOutput('❌ Error decoding prophecy. Please try again.');
+      setDecodedOutput('❌ Error connecting to decoder. Please try again.');
     } finally {
       setLoading(false);
     }
-  };  
+  };
 
   return (
     <Card className="p-6 space-y-4">
@@ -36,13 +38,18 @@ export default function ProphecyDashboard() {
           placeholder="Enter prophecy, verse, or question..."
           value={searchInput}
           onChange={(e) => setSearchInput(e.target.value)}
-          className="text-base"
+          className="text-base w-full"
         />
-        <Button onClick={handleDecode} disabled={loading}>
-          {loading ? 'Decoding...' : 'Decode'}
+        <Button
+          onClick={handleDecode}
+          disabled={loading || !searchInput.trim()}
+          className="w-full"
+        >
+          {loading ? '🔄 Decoding...' : 'Decode'}
         </Button>
-        <div className="bg-muted p-4 rounded-xl min-h-[100px] text-sm whitespace-pre-wrap">
-          {decodedOutput || 'Your decoded prophecy will appear here.'}
+
+        <div className="bg-muted/50 p-4 rounded-xl min-h-[120px] text-sm whitespace-pre-wrap">
+          {decodedOutput || '🧠 Your decoded prophecy will appear here.'}
         </div>
       </CardContent>
     </Card>
