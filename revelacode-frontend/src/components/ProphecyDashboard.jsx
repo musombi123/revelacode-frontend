@@ -15,11 +15,12 @@ export default function ProphecyDashboard() {
     setDecodedOutput('');
 
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_BASE}/decode`, {
+      const response = await fetch(`${baseUrl}/decode`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ verse: searchInput })
       });
+      
 
       const data = await response.json();
 
