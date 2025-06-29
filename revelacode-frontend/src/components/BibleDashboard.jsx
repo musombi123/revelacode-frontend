@@ -10,7 +10,7 @@ export default function BibleDashboard() {
   useEffect(() => {
     const fetchBibleData = async () => {
       try {
-        const response = await fetch(`${import.meta.env.BASE_URL}data/kjv.json`);
+        const response = await fetch(`data/kjv.json`);
         const data = await response.json();
         setBibleData(data);
       } catch (error) {

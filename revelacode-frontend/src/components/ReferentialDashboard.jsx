@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/Card';
-import { ScrollArea } from '@/components/ui/ScrollArea';
+import { ScrollArea } from "@/components/ui/ScrollArea";
 
 export default function ReferentialDashboard() {
   return (
