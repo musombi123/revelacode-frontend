@@ -18,11 +18,12 @@ import {
   CardContent
 } from '@/components/ui/Card';
 
-import BibleDashboard from './BibleDashboard';
-import ProphecyDashboard from './ProphecyDashboard';
-import SettingsDashboard from './SettingsDashboard';
-import AccountDashboard from './AccountDashboard';
-import ReferentialDashboard from './ReferentialDashboard';
+import BibleDashboard from './BibleDashboard.jsx';
+import ProphecyDashboard from './ProphecyDashboard.jsx';
+import SettingsDashboard from './SettingsDashboard.jsx';
+import AccountDashboard from './AccountDashboard.jsx';
+import ReferentialDashboard from './ReferentialDashboard.jsx';
+
 
 export default function MainDashboard() {
   return (

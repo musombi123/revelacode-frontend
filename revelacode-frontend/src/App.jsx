@@ -1,5 +1,4 @@
-import React from 'react';
-import MainDashboard from './components/MainDashboard';
+import MainDashboard from './components/MainDashboard.jsx';
 
 export default function App() {
   return (
@@ -8,4 +7,3 @@ export default function App() {
     </div>
   );
 }
-
