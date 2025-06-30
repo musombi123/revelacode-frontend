@@ -2,6 +2,25 @@ import React, { useEffect, useState } from 'react';
 import { Card, CardContent } from '@/components/ui/Card';
 import { ScrollArea } from '@/components/ui/ScrollArea';
 
+const oldTestament = [
+  'Genesis', 'Exodus', 'Leviticus', 'Numbers', 'Deuteronomy',
+  'Joshua', 'Judges', 'Ruth', '1 Samuel', '2 Samuel',
+  '1 Kings', '2 Kings', '1 Chronicles', '2 Chronicles', 'Ezra',
+  'Nehemiah', 'Esther', 'Job', 'Psalms', 'Proverbs',
+  'Ecclesiastes', 'Song of Solomon', 'Isaiah', 'Jeremiah',
+  'Lamentations', 'Ezekiel', 'Daniel', 'Hosea', 'Joel', 'Amos',
+  'Obadiah', 'Jonah', 'Micah', 'Nahum', 'Habakkuk',
+  'Zephaniah', 'Haggai', 'Zechariah', 'Malachi'
+];
+
+const newTestament = [
+  'Matthew', 'Mark', 'Luke', 'John', 'Acts',
+  'Romans', '1 Corinthians', '2 Corinthians', 'Galatians', 'Ephesians',
+  'Philippians', 'Colossians', '1 Thessalonians', '2 Thessalonians',
+  '1 Timothy', '2 Timothy', 'Titus', 'Philemon', 'Hebrews', 'James',
+  '1 Peter', '2 Peter', '1 John', '2 John', '3 John', 'Jude', 'Revelation'
+];
+
 export default function BibleDashboard() {
   const [bibleData, setBibleData] = useState({});
   const [bookKeys, setBookKeys] = useState([]);
@@ -17,7 +36,7 @@ export default function BibleDashboard() {
         setBibleData(data);
         const keys = Object.keys(data);
         setBookKeys(keys);
-        setSelectedBookKey(keys[0]); // auto-select first book
+        setSelectedBookKey(keys[0]); // Default to first
       } catch (error) {
         console.error('Failed to load Bible data:', error);
       }
@@ -41,34 +60,66 @@ export default function BibleDashboard() {
 
   const selectedBook = bibleData[selectedBookKey];
 
+  const oldBooks = bookKeys
+    .filter((key) => oldTestament.includes(bibleData[key]?.book))
+    .sort((a, b) => oldTestament.indexOf(bibleData[a].book) - oldTestament.indexOf(bibleData[b].book));
+
+  const newBooks = bookKeys
+    .filter((key) => newTestament.includes(bibleData[key]?.book))
+    .sort((a, b) => newTestament.indexOf(bibleData[a].book) - newTestament.indexOf(bibleData[b].book));
+
   return (
     <div className="flex gap-6 p-4">
-      {/* Book List */}
+      {/* Sidebar: Book list */}
       <div className="w-1/4 max-h-[80vh] border-r pr-4">
-        <h2 className="font-bold mb-2">📚 Books</h2>
-        <ScrollArea className="h-[70vh] pr-2">
-          <ul className="space-y-1">
-            {bookKeys.map((key) => (
-              <li
-                key={key}
-                onClick={() => handleBookClick(key)}
-                className={`cursor-pointer p-2 rounded hover:bg-blue-100 dark:hover:bg-blue-800 ${
-                  selectedBookKey === key ? 'bg-blue-200 dark:bg-blue-700 font-semibold' : ''
-                }`}
-              >
-                {bibleData[key]?.book || key}
-              </li>
-            ))}
-          </ul>
+        <h2 className="font-bold mb-2">📖 Bible Books</h2>
+        <ScrollArea className="h-[70vh] pr-2 space-y-4">
+          {/* Old Testament */}
+          <div>
+            <h3 className="text-sm font-bold text-muted-foreground mb-1">📜 Old Testament</h3>
+            <ul className="space-y-1">
+              {oldBooks.map((key) => (
+                <li
+                  key={key}
+                  onClick={() => handleBookClick(key)}
+                  className={`cursor-pointer p-2 rounded hover:bg-blue-100 dark:hover:bg-blue-800 ${
+                    selectedBookKey === key ? 'bg-blue-200 dark:bg-blue-700 font-semibold' : ''
+                  }`}
+                >
+                  {bibleData[key]?.book}
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* New Testament */}
+          <div>
+            <h3 className="text-sm font-bold text-muted-foreground mt-4 mb-1">✝️ New Testament</h3>
+            <ul className="space-y-1">
+              {newBooks.map((key) => (
+                <li
+                  key={key}
+                  onClick={() => handleBookClick(key)}
+                  className={`cursor-pointer p-2 rounded hover:bg-blue-100 dark:hover:bg-blue-800 ${
+                    selectedBookKey === key ? 'bg-blue-200 dark:bg-blue-700 font-semibold' : ''
+                  }`}
+                >
+                  {bibleData[key]?.book}
+                </li>
+              ))}
+            </ul>
+          </div>
         </ScrollArea>
       </div>
 
-      {/* Chapter + Verse Panel */}
+      {/* Main panel: Chapters + Verses */}
       <div className="flex-1 space-y-4">
-        {/* Chapters */}
+        {/* Chapter list */}
         {selectedBook && (
           <div>
-            <h3 className="text-lg font-bold mb-2">📖 {selectedBook.book} — Chapters</h3>
+            <h3 className="text-lg font-bold mb-2">
+              📘 {selectedBook.book} — Chapters
+            </h3>
             <div className="flex flex-wrap gap-2">
               {selectedBook.chapters.map((chapter, idx) => (
                 <button
@@ -85,7 +136,7 @@ export default function BibleDashboard() {
           </div>
         )}
 
-        {/* Verses */}
+        {/* Verse display */}
         {selectedChapterIndex !== null && (
           <Card>
             <CardContent className="max-h-[50vh] overflow-y-auto space-y-2">
