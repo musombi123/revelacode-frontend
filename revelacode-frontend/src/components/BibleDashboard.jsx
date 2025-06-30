@@ -3,10 +3,10 @@ import { Card, CardContent } from '@/components/ui/Card';
 import { ScrollArea } from '@/components/ui/ScrollArea';
 
 export default function BibleDashboard() {
-  const [bibleData, setBibleData] = useState([]);
-  const [books, setBooks] = useState([]);
-  const [selectedBook, setSelectedBook] = useState('');
-  const [selectedChapter, setSelectedChapter] = useState(null);
+  const [bibleData, setBibleData] = useState({});
+  const [bookKeys, setBookKeys] = useState([]);
+  const [selectedBookKey, setSelectedBookKey] = useState('');
+  const [selectedChapterIndex, setSelectedChapterIndex] = useState(null);
   const [verses, setVerses] = useState([]);
 
   useEffect(() => {
@@ -15,9 +15,9 @@ export default function BibleDashboard() {
         const response = await fetch('/data/kjv.json');
         const data = await response.json();
         setBibleData(data);
-
-        const uniqueBooks = [...new Set(data.map(v => v.book))];
-        setBooks(uniqueBooks);
+        const keys = Object.keys(data);
+        setBookKeys(keys);
+        setSelectedBookKey(keys[0]); // auto-select first book
       } catch (error) {
         console.error('Failed to load Bible data:', error);
       }
@@ -26,65 +26,59 @@ export default function BibleDashboard() {
     fetchBibleData();
   }, []);
 
-  const getChaptersForBook = (book) => {
-    const chapters = bibleData
-      .filter(v => v.book === book)
-      .map(v => v.chapter);
-    return [...new Set(chapters)].sort((a, b) => a - b);
-  };
-
-  const handleBookClick = (book) => {
-    setSelectedBook(book);
-    setSelectedChapter(null);
+  const handleBookClick = (key) => {
+    setSelectedBookKey(key);
+    setSelectedChapterIndex(null);
     setVerses([]);
   };
 
-  const handleChapterClick = (chapter) => {
-    setSelectedChapter(chapter);
-    const chapterVerses = bibleData.filter(
-      v => v.book === selectedBook && v.chapter === chapter
-    );
-    setVerses(chapterVerses);
+  const handleChapterClick = (chapterIndex) => {
+    setSelectedChapterIndex(chapterIndex);
+    const selected = bibleData[selectedBookKey];
+    const chapter = selected.chapters[chapterIndex];
+    setVerses(chapter.verses);
   };
+
+  const selectedBook = bibleData[selectedBookKey];
 
   return (
     <div className="flex gap-6 p-4">
-      {/* Sidebar: List of books */}
+      {/* Book List */}
       <div className="w-1/4 max-h-[80vh] border-r pr-4">
         <h2 className="font-bold mb-2">📚 Books</h2>
         <ScrollArea className="h-[70vh] pr-2">
           <ul className="space-y-1">
-            {books.map((book) => (
+            {bookKeys.map((key) => (
               <li
-                key={book}
-                onClick={() => handleBookClick(book)}
+                key={key}
+                onClick={() => handleBookClick(key)}
                 className={`cursor-pointer p-2 rounded hover:bg-blue-100 dark:hover:bg-blue-800 ${
-                  selectedBook === book ? 'bg-blue-200 dark:bg-blue-700 font-semibold' : ''
+                  selectedBookKey === key ? 'bg-blue-200 dark:bg-blue-700 font-semibold' : ''
                 }`}
               >
-                {book}
+                {bibleData[key]?.book || key}
               </li>
             ))}
           </ul>
         </ScrollArea>
       </div>
 
-      {/* Main panel: Chapters and Verses */}
+      {/* Chapter + Verse Panel */}
       <div className="flex-1 space-y-4">
         {/* Chapters */}
         {selectedBook && (
           <div>
-            <h3 className="text-lg font-bold mb-2">📖 {selectedBook} — Chapters</h3>
+            <h3 className="text-lg font-bold mb-2">📖 {selectedBook.book} — Chapters</h3>
             <div className="flex flex-wrap gap-2">
-              {getChaptersForBook(selectedBook).map((ch) => (
+              {selectedBook.chapters.map((chapter, idx) => (
                 <button
-                  key={ch}
-                  onClick={() => handleChapterClick(ch)}
+                  key={idx}
+                  onClick={() => handleChapterClick(idx)}
                   className={`px-3 py-1 rounded border ${
-                    selectedChapter === ch ? 'bg-blue-600 text-white' : 'bg-gray-200'
+                    selectedChapterIndex === idx ? 'bg-blue-600 text-white' : 'bg-gray-200'
                   }`}
                 >
-                  {ch}
+                  {chapter.chapter}
                 </button>
               ))}
             </div>
@@ -92,11 +86,11 @@ export default function BibleDashboard() {
         )}
 
         {/* Verses */}
-        {selectedChapter && (
+        {selectedChapterIndex !== null && (
           <Card>
             <CardContent className="max-h-[50vh] overflow-y-auto space-y-2">
               <h4 className="text-md font-semibold mb-2">
-                {selectedBook} {selectedChapter}
+                {selectedBook.book} {selectedBook.chapters[selectedChapterIndex].chapter}
               </h4>
               {verses.map((v, idx) => (
                 <div key={idx} className="text-sm">
