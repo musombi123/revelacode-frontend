@@ -1,14 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent } from '@/components/ui/Card';
-import { Select } from '@/components/ui/Select';
-import { Input } from '@/components/ui/Input';
 
 export default function BibleDashboard() {
   const [bibleData, setBibleData] = useState([]);
   const [books, setBooks] = useState([]);
   const [selectedBook, setSelectedBook] = useState('');
-  const [selectedChapter, setSelectedChapter] = useState('');
-  const [chapters, setChapters] = useState([]);
+  const [selectedChapter, setSelectedChapter] = useState(null);
   const [verses, setVerses] = useState([]);
 
   useEffect(() => {
@@ -18,10 +15,8 @@ export default function BibleDashboard() {
         const data = await response.json();
         setBibleData(data);
 
-        // Extract unique books
-        const bookNames = [...new Set(data.map(v => v.book))];
-        setBooks(bookNames);
-        setSelectedBook(bookNames[0]); // default to first book
+        const uniqueBooks = [...new Set(data.map(v => v.book))];
+        setBooks(uniqueBooks);
       } catch (error) {
         console.error('Failed to load Bible data:', error);
       }
@@ -30,75 +25,87 @@ export default function BibleDashboard() {
     fetchBibleData();
   }, []);
 
-  // When book changes, update chapters
-  useEffect(() => {
-    if (!selectedBook) return;
-
-    const bookChapters = bibleData
-      .filter(v => v.book === selectedBook)
+  const getChaptersForBook = (book) => {
+    const chapters = bibleData
+      .filter(v => v.book === book)
       .map(v => v.chapter);
+    return [...new Set(chapters)].sort((a, b) => a - b);
+  };
 
-    const uniqueChapters = [...new Set(bookChapters)].sort((a, b) => a - b);
-    setChapters(uniqueChapters);
-    setSelectedChapter(uniqueChapters[0]); // default to first chapter
-  }, [selectedBook, bibleData]);
+  const handleBookClick = (book) => {
+    setSelectedBook(book);
+    setSelectedChapter(null);
+    setVerses([]);
+  };
 
-  // When chapter changes, update verses
-  useEffect(() => {
-    if (!selectedBook || !selectedChapter) return;
-
+  const handleChapterClick = (chapter) => {
+    setSelectedChapter(chapter);
     const chapterVerses = bibleData.filter(
-      v => v.book === selectedBook && v.chapter === Number(selectedChapter)
+      v => v.book === selectedBook && v.chapter === chapter
     );
     setVerses(chapterVerses);
-  }, [selectedBook, selectedChapter, bibleData]);
+  };
 
   return (
-    <div className="space-y-4 p-4">
-      {/* Book selection */}
-      <div className="flex flex-col sm:flex-row gap-4">
-        <div className="flex-1">
-          <label className="block mb-1 font-semibold">Book</label>
-          <select
-            value={selectedBook}
-            onChange={(e) => setSelectedBook(e.target.value)}
-            className="w-full p-2 rounded border"
-          >
-            {books.map((book) => (
-              <option key={book} value={book}>{book}</option>
-            ))}
-          </select>
-        </div>
-
-        {/* Chapter selection */}
-        <div className="flex-1">
-          <label className="block mb-1 font-semibold">Chapter</label>
-          <select
-            value={selectedChapter}
-            onChange={(e) => setSelectedChapter(e.target.value)}
-            className="w-full p-2 rounded border"
-          >
-            {chapters.map((ch) => (
-              <option key={ch} value={ch}>Chapter {ch}</option>
-            ))}
-          </select>
-        </div>
+    <div className="flex gap-6 p-4">
+      {/* Sidebar: List of books */}
+      <div className="w-1/4 max-h-[80vh] overflow-y-auto border-r pr-4">
+        <h2 className="font-bold mb-2">📚 Books</h2>
+        <ul className="space-y-1">
+          {books.map((book) => (
+            <li
+              key={book}
+              onClick={() => handleBookClick(book)}
+              className={`cursor-pointer p-2 rounded hover:bg-blue-100 dark:hover:bg-blue-800 ${
+                selectedBook === book ? 'bg-blue-200 dark:bg-blue-700 font-semibold' : ''
+              }`}
+            >
+              {book}
+            </li>
+          ))}
+        </ul>
       </div>
 
-      {/* Display verses */}
-      <Card>
-        <CardContent className="space-y-2 max-h-[500px] overflow-y-auto">
-          {verses.length > 0 ? (
-            verses.map((verse, idx) => (
-              <div key={idx} className="text-sm">
-                <strong>{verse.verse}</strong>. {verse.text}
-              </div>
-            ))
-          ) : (
-            <p className="text-muted-foreground">No verses found for this chapter.</p>
-          )}
-        </CardContent>
-      </Card>
+      {/* Chapter List and Verses */}
+      <div className="flex-1 space-y-4">
+        {/* Chapters */}
+        {selectedBook && (
+          <div>
+            <h3 className="text-lg font-bold mb-2">
+              📖 {selectedBook} — Chapters
+            </h3>
+            <div className="flex flex-wrap gap-2">
+              {getChaptersForBook(selectedBook).map((ch) => (
+                <button
+                  key={ch}
+                  onClick={() => handleChapterClick(ch)}
+                  className={`px-3 py-1 rounded border ${
+                    selectedChapter === ch ? 'bg-blue-600 text-white' : 'bg-gray-200'
+                  }`}
+                >
+                  {ch}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Verses */}
+        {selectedChapter && (
+          <Card>
+            <CardContent className="max-h-[50vh] overflow-y-auto space-y-2">
+              <h4 className="text-md font-semibold mb-2">
+                {selectedBook} {selectedChapter}
+              </h4>
+              {verses.map((v, idx) => (
+                <div key={idx} className="text-sm">
+                  <strong>{v.verse}</strong>. {v.text}
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        )}
+      </div>
     </div>
   );
 }
