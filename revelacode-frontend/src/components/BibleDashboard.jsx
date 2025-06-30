@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent } from '@/components/ui/Card';
+import { ScrollArea } from '@/components/ui/ScrollArea';
 
 export default function BibleDashboard() {
   const [bibleData, setBibleData] = useState([]);
@@ -49,31 +50,31 @@ export default function BibleDashboard() {
   return (
     <div className="flex gap-6 p-4">
       {/* Sidebar: List of books */}
-      <div className="w-1/4 max-h-[80vh] overflow-y-auto border-r pr-4">
+      <div className="w-1/4 max-h-[80vh] border-r pr-4">
         <h2 className="font-bold mb-2">📚 Books</h2>
-        <ul className="space-y-1">
-          {books.map((book) => (
-            <li
-              key={book}
-              onClick={() => handleBookClick(book)}
-              className={`cursor-pointer p-2 rounded hover:bg-blue-100 dark:hover:bg-blue-800 ${
-                selectedBook === book ? 'bg-blue-200 dark:bg-blue-700 font-semibold' : ''
-              }`}
-            >
-              {book}
-            </li>
-          ))}
-        </ul>
+        <ScrollArea className="h-[70vh] pr-2">
+          <ul className="space-y-1">
+            {books.map((book) => (
+              <li
+                key={book}
+                onClick={() => handleBookClick(book)}
+                className={`cursor-pointer p-2 rounded hover:bg-blue-100 dark:hover:bg-blue-800 ${
+                  selectedBook === book ? 'bg-blue-200 dark:bg-blue-700 font-semibold' : ''
+                }`}
+              >
+                {book}
+              </li>
+            ))}
+          </ul>
+        </ScrollArea>
       </div>
 
-      {/* Chapter List and Verses */}
+      {/* Main panel: Chapters and Verses */}
       <div className="flex-1 space-y-4">
         {/* Chapters */}
         {selectedBook && (
           <div>
-            <h3 className="text-lg font-bold mb-2">
-              📖 {selectedBook} — Chapters
-            </h3>
+            <h3 className="text-lg font-bold mb-2">📖 {selectedBook} — Chapters</h3>
             <div className="flex flex-wrap gap-2">
               {getChaptersForBook(selectedBook).map((ch) => (
                 <button
