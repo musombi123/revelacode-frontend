@@ -82,7 +82,7 @@ export default function MainDashboard() {
         <TabsContent value="referential">
           <Card>
             <CardContent className="p-4">
-              <ReferenceDashboard />
+            <ReferentialDashboard />
             </CardContent>
           </Card>
         </TabsContent>
