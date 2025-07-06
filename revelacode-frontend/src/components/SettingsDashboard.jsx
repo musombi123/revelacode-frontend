@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { useTheme } from '@/hooks/useTheme'; // ✅ custom hook
+import { useTheme } from '@/hooks/useTheme';
+import { useHistory } from '@/context/HistoryContext';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Switch } from '@/components/ui/Switch';
 import { Label } from '@/components/ui/Label';
@@ -13,16 +14,17 @@ import {
 import { Button } from '@/components/ui/Button';
 
 export default function SettingsDashboard() {
-  const { theme, setTheme } = useTheme(); // ✅ uses your hook
+  const { theme, setTheme } = useTheme();
+  const { history } = useHistory();
   const [showHistory, setShowHistory] = useState(true);
   const [fontSize, setFontSize] = useState(() => {
     return localStorage.getItem('fontSize') || 'md';
   });
-  
+  const [aiEnabled, setAiEnabled] = useState(true);
+
   useEffect(() => {
     localStorage.setItem('fontSize', fontSize);
   }, [fontSize]);
-  const [aiEnabled, setAiEnabled] = useState(true);
 
   const handleSupportClick = () => {
     window.open('https://wa.me/+254742466828', '_blank');
@@ -57,18 +59,6 @@ export default function SettingsDashboard() {
           </Select>
         </div>
 
-        {/* History Toggle */}
-        <div className="flex items-center justify-between">
-          <Label>📜 History</Label>
-          <Switch checked={showHistory} onCheckedChange={setShowHistory} />
-        </div>
-
-        {showHistory && (
-          <div className="p-3 rounded bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300">
-            <p>This is your recent history (placeholder).</p>
-          </div>
-        )}
-
         {/* Font Size */}
         <div className="flex items-center justify-between">
           <Label>🔠 Font Size</Label>
@@ -89,6 +79,36 @@ export default function SettingsDashboard() {
           <Label>🤖 AI Assistant</Label>
           <Switch checked={aiEnabled} onCheckedChange={setAiEnabled} />
         </div>
+
+        {/* History Toggle */}
+        <div className="flex items-center justify-between">
+          <Label>📜 Show Decode History</Label>
+          <Switch checked={showHistory} onCheckedChange={setShowHistory} />
+        </div>
+
+        {showHistory && (
+          <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2 border-t pt-4">
+            <h3 className="text-lg font-semibold text-indigo-600">🕓 Decode History</h3>
+            {history.length === 0 ? (
+              <p className="text-gray-500">No decoded prophecies yet.</p>
+            ) : (
+              history.map((entry) => (
+                <div
+                  key={entry.id}
+                  className="bg-muted/30 rounded-lg p-4 shadow-sm hover:bg-muted/50 transition"
+                >
+                  <p className="text-xs text-indigo-500">{entry.timestamp}</p>
+                  <p className="text-sm font-semibold">🔍 {entry.input}</p>
+                  <pre className="text-xs text-gray-700 dark:text-gray-300 mt-2 whitespace-pre-wrap">
+                    {JSON.parse(entry.output)?.[0]
+                      ? Object.entries(JSON.parse(entry.output)?.[0])[0][1].meaning
+                      : entry.output}
+                  </pre>
+                </div>
+              ))
+            )}
+          </div>
+        )}
 
         {/* Support */}
         <div className="text-center pt-4">

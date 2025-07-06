@@ -1,8 +1,12 @@
+export default function ProphecyDashboard() {
+  const { addToHistory } = useHistory();
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Card, CardContent, CardHeader } from '@/components/ui/Card';
 import { CopyIcon } from 'lucide-react';
+import { useHistory } from '@/context/HistoryContext';
 
 export default function ProphecyDashboard() {
   const [searchInput, setSearchInput] = useState('');
@@ -36,6 +40,14 @@ export default function ProphecyDashboard() {
       if (data?.decoded && typeof data.decoded === 'object') {
         setDecodedOutput(JSON.stringify(data.decoded, null, 2));
         setTimestamp(new Date().toLocaleString());
+
+        addToHistory({
+          id: Date.now(),
+          timestamp: new Date().toLocaleString(),
+          input: trimmedInput,
+          output: formatted
+        });
+        
       } else {
         setDecodedOutput('⚠️ No symbolic meaning detected.');
       }
@@ -52,8 +64,34 @@ export default function ProphecyDashboard() {
       navigator.clipboard.writeText(decodedOutput);
     }
   };
-
-  return (
+  const parsedOutput = (rawJSON) => {
+    try {
+      const parsed = JSON.parse(rawJSON);
+      const item = parsed?.decoded?.[0];
+      if (!item) return <p>No decoded content found.</p>;
+  
+      const symbolKey = Object.keys(item)[0];
+      const data = item[symbolKey];
+  
+      return (
+        <div className="space-y-2 text-sm">
+          <h3 className="text-xl font-bold text-indigo-600 dark:text-indigo-300">
+            🔮 Symbol: {symbolKey}
+          </h3>
+          <p><strong>🗝️ Meaning:</strong> {data.meaning}</p>
+          <p><strong>📖 Reference:</strong> {data.reference}</p>
+          <p><strong>🧠 Interpretation:</strong> {data.interpretation}</p>
+          <p><strong>🚦 Status:</strong> {data.status}</p>
+          <p><strong>📌 Tags:</strong> {data.tags?.join(', ')}</p>
+          <p><strong>📝 Notes:</strong> {data.notes}</p>
+        </div>
+      );
+    } catch (err) {
+      console.error('Parsing failed:', err);
+      return <pre className="text-red-500">{rawJSON}</pre>;
+    }
+  };
+   return (
     <Card className="p-6 space-y-4">
       <CardContent className="space-y-4">
         <Input
@@ -79,10 +117,14 @@ export default function ProphecyDashboard() {
             <p className="text-sm text-gray-500">{timestamp || '🧠 Awaiting input...'}</p>
           </CardHeader>
           <CardContent>
-            <pre className="text-gray-800 dark:text-gray-100 whitespace-pre-wrap text-sm">
-              {decodedOutput || '🧠 Your decoded prophecy will appear here.'}
-            </pre>
-            {decodedOutput && (
+          {decodedOutput ? (
+            parsedOutput(decodedOutput)
+          ) : (
+          <p className="text-gray-600 dark:text-gray-300 text-sm">
+            🧠 Your decoded prophecy will appear here.
+            </p>
+          )}
+          {decodedOutput && (
               <div className="flex justify-end mt-3">
                 <Button variant="ghost" onClick={handleCopy}>
                   <CopyIcon className="mr-2 h-4 w-4" /> Copy
