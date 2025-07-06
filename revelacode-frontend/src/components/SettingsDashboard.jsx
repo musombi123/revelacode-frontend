@@ -1,23 +1,38 @@
+'use client';
+
 import React, { useState } from 'react';
+import { useTheme } from 'next-themes';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Switch } from '@/components/ui/Switch';
 import { Label } from '@/components/ui/Label';
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/Select';
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from '@/components/ui/Select';
 import { Button } from '@/components/ui/Button';
 
 export default function SettingsDashboard() {
-  const [theme, setTheme] = useState('system');
+  const { theme, setTheme } = useTheme();
   const [showHistory, setShowHistory] = useState(true);
-  const [fontSize, setFontSize] = useState('md');
+  const [fontSize, setFontSize] = useState<'sm' | 'md' | 'lg'>('md');
   const [aiEnabled, setAiEnabled] = useState(true);
 
   const handleSupportClick = () => {
-    window.open('https://example.com/support', '_blank');
+    window.open('https://wa.me/+254742466828', '_blank'); // ✅ WhatsApp support link
   };
+
+  const fontSizeClass = {
+    sm: 'text-sm',
+    md: 'text-base',
+    lg: 'text-lg',
+  }[fontSize];
 
   return (
     <Card className="w-full shadow rounded-xl">
-      <CardContent className="p-6 space-y-6">
+      <CardContent className={`p-6 space-y-6 ${fontSizeClass}`}>
         <h2 className="text-2xl font-bold text-center">⚙️ User Settings</h2>
 
         {/* Theme Switcher */}
@@ -40,6 +55,14 @@ export default function SettingsDashboard() {
           <Label>📜 History</Label>
           <Switch checked={showHistory} onCheckedChange={setShowHistory} />
         </div>
+
+        {/* Conditional History Preview */}
+        {showHistory && (
+          <div className="p-4 bg-muted rounded text-muted-foreground text-sm">
+            <p>Showing recent history activity...</p>
+            {/* Replace this with real history list */}
+          </div>
+        )}
 
         {/* Font Size */}
         <div className="flex items-center justify-between">
@@ -65,7 +88,7 @@ export default function SettingsDashboard() {
         {/* Support */}
         <div className="text-center pt-4">
           <Button variant="outline" onClick={handleSupportClick}>
-            🆘 Contact Support / Give Feedback
+            🆘 Contact Support via WhatsApp
           </Button>
         </div>
       </CardContent>
