@@ -1,7 +1,4 @@
-export default function ProphecyDashboard() {
-  const { addToHistory } = useHistory();
-
-import React, { useState } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Card, CardContent, CardHeader } from '@/components/ui/Card';
@@ -9,6 +6,7 @@ import { CopyIcon } from 'lucide-react';
 import { useHistory } from '@/context/HistoryContext';
 
 export default function ProphecyDashboard() {
+  const { addToHistory } = useHistory();
   const [searchInput, setSearchInput] = useState('');
   const [decodedOutput, setDecodedOutput] = useState('');
   const [timestamp, setTimestamp] = useState('');

@@ -21,12 +21,14 @@ const newTestament = [
   '1 Peter', '2 Peter', '1 John', '2 John', '3 John', 'Jude', 'Revelation'
 ];
 
+
 export default function BibleDashboard() {
   const [bibleData, setBibleData] = useState({});
   const [bookKeys, setBookKeys] = useState([]);
   const [selectedBookKey, setSelectedBookKey] = useState('');
   const [selectedChapterIndex, setSelectedChapterIndex] = useState(null);
   const [verses, setVerses] = useState([]);
+  const [searchInput, setSearchInput] = useState('');
 
   useEffect(() => {
     const fetchBibleData = async () => {
@@ -56,6 +58,40 @@ export default function BibleDashboard() {
     const selected = bibleData[selectedBookKey];
     const chapter = selected.chapters[chapterIndex];
     setVerses(chapter.verses);
+  };
+
+  const handleSearch = () => {
+    const match = searchInput.match(/^([\dI]{0,2}\s?\w+)\s+(\d+):(\d+)$/i);
+    if (!match) return;
+
+    const [, bookNameRaw, chapterNum, verseNum] = match;
+    const bookName = bookNameRaw.trim();
+    const bookKey = bookKeys.find((key) => bibleData[key]?.book.toLowerCase() === bookName.toLowerCase());
+
+    if (bookKey) {
+      const chapterIndex = parseInt(chapterNum, 10) - 1;
+      const verseIndex = parseInt(verseNum, 10) - 1;
+
+      setSelectedBookKey(bookKey);
+      setSelectedChapterIndex(chapterIndex);
+
+      const selected = bibleData[bookKey];
+      const versesArray = selected.chapters[chapterIndex]?.verses ?? [];
+      setVerses(versesArray);
+      setTimeout(() => {
+        const el = document.getElementById(`verse-${verseIndex}`);
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 100);
+    }
+  };
+
+  const handleBack = () => {
+    if (selectedChapterIndex !== null) {
+      setSelectedChapterIndex(null);
+      setVerses([]);
+    } else {
+      setSelectedBookKey('');
+    }
   };
 
   const selectedBook = bibleData[selectedBookKey];
@@ -114,12 +150,34 @@ export default function BibleDashboard() {
 
       {/* Main panel: Chapters + Verses */}
       <div className="flex-1 space-y-4">
+        {/* Search input */}
+        <div className="flex gap-2 items-center">
+          <input
+            type="text"
+            placeholder="Search e.g. John 3:16"
+            className="w-full p-2 rounded border bg-background text-foreground"
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') handleSearch();
+            }}
+          />
+          <button onClick={handleSearch} className="bg-blue-600 text-white px-4 py-2 rounded">
+            Search
+          </button>
+        </div>
+
+        {/* Back Button */}
+        {(selectedBookKey && (selectedChapterIndex !== null || selectedBookKey)) && (
+          <button onClick={handleBack} className="text-blue-500 underline text-sm">
+            ← Back
+          </button>
+        )}
+
         {/* Chapter list */}
-        {selectedBook && (
+        {selectedBook && selectedChapterIndex === null && (
           <div>
-            <h3 className="text-lg font-bold mb-2">
-              📘 {selectedBook.book} — Chapters
-            </h3>
+            <h3 className="text-lg font-bold mb-2">📘 {selectedBook.book} — Chapters</h3>
             <div className="flex flex-wrap gap-2">
               {selectedBook.chapters.map((chapter, idx) => (
                 <button
@@ -144,7 +202,11 @@ export default function BibleDashboard() {
                 {selectedBook.book} {selectedBook.chapters[selectedChapterIndex].chapter}
               </h4>
               {verses.map((v, idx) => (
-                <div key={idx} className="text-sm">
+                <div
+                  key={idx}
+                  id={`verse-${idx}`}
+                  className="text-sm leading-relaxed"
+                >
                   <strong>{v.verse}</strong>. {v.text}
                 </div>
               ))}

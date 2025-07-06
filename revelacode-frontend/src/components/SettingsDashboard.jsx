@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useTheme } from '@/hooks/useTheme';
+import { useTheme } from '@/components/hooks/useTheme';
 import { useHistory } from '@/context/HistoryContext';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Switch } from '@/components/ui/Switch';
