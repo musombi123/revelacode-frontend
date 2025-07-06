@@ -1,7 +1,5 @@
-'use client';
-
-import React, { useState } from 'react';
-import { useTheme } from '@/hooks/useTheme';
+import React, { useEffect, useState } from 'react';
+import { useTheme } from '@/hooks/useTheme'; // ✅ custom hook
 import { Card, CardContent } from '@/components/ui/Card';
 import { Switch } from '@/components/ui/Switch';
 import { Label } from '@/components/ui/Label';
@@ -15,13 +13,19 @@ import {
 import { Button } from '@/components/ui/Button';
 
 export default function SettingsDashboard() {
-  const { theme, setTheme } = useTheme();
+  const { theme, setTheme } = useTheme(); // ✅ uses your hook
   const [showHistory, setShowHistory] = useState(true);
-  const [fontSize, setFontSize] = useState<'sm' | 'md' | 'lg'>('md');
+  const [fontSize, setFontSize] = useState(() => {
+    return localStorage.getItem('fontSize') || 'md';
+  });
+  
+  useEffect(() => {
+    localStorage.setItem('fontSize', fontSize);
+  }, [fontSize]);
   const [aiEnabled, setAiEnabled] = useState(true);
 
   const handleSupportClick = () => {
-    window.open('https://wa.me/+254742466828', '_blank'); // ✅ WhatsApp support link
+    window.open('https://wa.me/+254742466828', '_blank');
   };
 
   const fontSizeClass = {
@@ -32,7 +36,10 @@ export default function SettingsDashboard() {
 
   return (
     <Card className="w-full shadow rounded-xl">
-      <CardContent className={`p-6 space-y-6 ${fontSizeClass}`}>
+      <CardContent
+        className={`p-6 space-y-6 transition-colors duration-300 ${fontSizeClass} 
+        bg-white text-black dark:bg-gray-900 dark:text-white`}
+      >
         <h2 className="text-2xl font-bold text-center">⚙️ User Settings</h2>
 
         {/* Theme Switcher */}
@@ -56,11 +63,9 @@ export default function SettingsDashboard() {
           <Switch checked={showHistory} onCheckedChange={setShowHistory} />
         </div>
 
-        {/* Conditional History Preview */}
         {showHistory && (
-          <div className="p-4 bg-muted rounded text-muted-foreground text-sm">
-            <p>Showing recent history activity...</p>
-            {/* Replace this with real history list */}
+          <div className="p-3 rounded bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300">
+            <p>This is your recent history (placeholder).</p>
           </div>
         )}
 
@@ -87,7 +92,11 @@ export default function SettingsDashboard() {
 
         {/* Support */}
         <div className="text-center pt-4">
-          <Button variant="outline" onClick={handleSupportClick}>
+          <Button
+            variant="outline"
+            onClick={handleSupportClick}
+            className="dark:border-gray-600 dark:hover:bg-gray-700"
+          >
             🆘 Contact Support via WhatsApp
           </Button>
         </div>
