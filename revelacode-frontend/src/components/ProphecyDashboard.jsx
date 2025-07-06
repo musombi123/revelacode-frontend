@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
-import { Card, CardContent } from '@/components/ui/Card';
+import { Card, CardContent, CardHeader } from '@/components/ui/Card';
+import { CopyIcon } from 'lucide-react';
 
 export default function ProphecyDashboard() {
   const [searchInput, setSearchInput] = useState('');
   const [decodedOutput, setDecodedOutput] = useState('');
+  const [timestamp, setTimestamp] = useState('');
   const [loading, setLoading] = useState(false);
 
   const baseUrl = import.meta.env.VITE_API_URL;
@@ -16,6 +18,7 @@ export default function ProphecyDashboard() {
 
     setLoading(true);
     setDecodedOutput('');
+    setTimestamp('');
 
     try {
       const response = await fetch(`${baseUrl}/decode`, {
@@ -32,6 +35,7 @@ export default function ProphecyDashboard() {
 
       if (data?.decoded && typeof data.decoded === 'object') {
         setDecodedOutput(JSON.stringify(data.decoded, null, 2));
+        setTimestamp(new Date().toLocaleString());
       } else {
         setDecodedOutput('⚠️ No symbolic meaning detected.');
       }
@@ -40,6 +44,12 @@ export default function ProphecyDashboard() {
       setDecodedOutput('❌ Error connecting to decoder. Please try again.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleCopy = () => {
+    if (decodedOutput) {
+      navigator.clipboard.writeText(decodedOutput);
     }
   };
 
@@ -60,9 +70,27 @@ export default function ProphecyDashboard() {
           {loading ? '🔄 Decoding...' : 'Decode'}
         </Button>
 
-        <div className="bg-muted/50 p-4 rounded-xl min-h-[120px] text-sm whitespace-pre-wrap">
-          {decodedOutput || '🧠 Your decoded prophecy will appear here.'}
-        </div>
+        {/* Decoded Result Display */}
+        <Card className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border p-4">
+          <CardHeader>
+            <h2 className="text-xl font-semibold text-indigo-600 dark:text-indigo-300">
+              Decoded Prophecy
+            </h2>
+            <p className="text-sm text-gray-500">{timestamp || '🧠 Awaiting input...'}</p>
+          </CardHeader>
+          <CardContent>
+            <pre className="text-gray-800 dark:text-gray-100 whitespace-pre-wrap text-sm">
+              {decodedOutput || '🧠 Your decoded prophecy will appear here.'}
+            </pre>
+            {decodedOutput && (
+              <div className="flex justify-end mt-3">
+                <Button variant="ghost" onClick={handleCopy}>
+                  <CopyIcon className="mr-2 h-4 w-4" /> Copy
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </CardContent>
     </Card>
   );
