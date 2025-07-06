@@ -1,15 +1,13 @@
 import Layout from "./components/Layout.jsx";
 import MainDashboard from "./components/MainDashboard.jsx";
-import { HistoryProvider } from '@/context/HistoryContext';
-
-<HistoryProvider>
-  <AppRoutes />
-</HistoryProvider>
+import { HistoryProvider } from "./components/context/HistoryContext";
 
 export default function App() {
   return (
-    <Layout>
-      <MainDashboard />
-    </Layout>
+    <HistoryProvider>
+      <Layout>
+        <MainDashboard />
+      </Layout>
+    </HistoryProvider>
   );
 }
