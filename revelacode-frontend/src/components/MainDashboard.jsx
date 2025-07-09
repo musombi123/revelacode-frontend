@@ -1,5 +1,4 @@
-// MainDashboard.jsx
-import React from 'react';
+import React, { useState } from 'react';
 import {
   BookOpen,
   Search,
@@ -7,16 +6,6 @@ import {
   Link2,
   Info
 } from 'lucide-react';
-import {
-  Tabs,
-  TabsList,
-  TabsTrigger,
-  TabsContent
-} from '@/components/ui/Tabs';
-import {
-  Card,
-  CardContent
-} from '@/components/ui/Card';
 
 import BibleDashboard from './BibleDashboard.jsx';
 import ProphecyDashboard from './ProphecyDashboard.jsx';
@@ -24,69 +13,60 @@ import SettingsDashboard from './SettingsDashboard.jsx';
 import AccountDashboard from './AccountDashboard.jsx';
 import ReferentialDashboard from './ReferentialDashboard.jsx';
 
+const tabs = [
+  { value: 'bible', label: 'Bible', icon: BookOpen },
+  { value: 'prophecy', label: 'Prophecy', icon: Search },
+  { value: 'settings', label: 'Settings', icon: Settings },
+  { value: 'accounts', label: 'Accounts', icon: Link2 },
+  { value: 'referential', label: 'Referential', icon: Info },
+];
 
 export default function MainDashboard() {
+  const [activeTab, setActiveTab] = useState('bible');
+
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case 'bible':
+        return <BibleDashboard />;
+      case 'prophecy':
+        return <ProphecyDashboard />;
+      case 'settings':
+        return <SettingsDashboard />;
+      case 'accounts':
+        return <AccountDashboard />;
+      case 'referential':
+        return <ReferentialDashboard />;
+      default:
+        return null;
+    }
+  };
+
   return (
-    <div className="p-4 space-y-6">
-      <Tabs defaultValue="bible" className="w-full">
-        <TabsList className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 overflow-x-auto">
-          <TabsTrigger value="bible" aria-label="Open Bible Dashboard">
-            <BookOpen className="inline mr-2" /> Bible
-          </TabsTrigger>
-          <TabsTrigger value="prophecy" aria-label="Open Prophecy Dashboard">
-            <Search className="inline mr-2" /> Prophecy
-          </TabsTrigger>
-          <TabsTrigger value="settings" aria-label="Open Settings">
-            <Settings className="inline mr-2" /> Settings
-          </TabsTrigger>
-          <TabsTrigger value="accounts" aria-label="Manage Linked Accounts">
-            <Link2 className="inline mr-2" /> Accounts
-          </TabsTrigger>
-          <TabsTrigger value="referential" aria-label="Reference Tools">
-            <Info className="inline mr-2" /> Referential
-          </TabsTrigger>
-        </TabsList>
+    <div className="flex flex-col h-screen w-full overflow-hidden bg-white dark:bg-zinc-900 transition-colors duration-300">
+      {/* Tab Navigation */}
+      <div className="flex-shrink-0 p-4 overflow-x-auto border-b border-gray-200 dark:border-zinc-800">
+        <div className="flex space-x-4 w-max">
+          {tabs.map(({ value, label, icon: Icon }) => (
+            <button
+              key={value}
+              onClick={() => setActiveTab(value)}
+              className={`flex items-center space-x-2 px-4 py-2 rounded-md transition duration-300 ${
+                activeTab === value
+                  ? 'bg-blue-600 text-white shadow-md'
+                  : 'bg-gray-100 dark:bg-zinc-800 hover:bg-gray-200 dark:hover:bg-zinc-700 text-gray-800 dark:text-gray-200'
+              }`}
+            >
+              <Icon size={18} />
+              <span>{label}</span>
+            </button>
+          ))}
+        </div>
+      </div>
 
-        <TabsContent value="bible">
-          <Card>
-            <CardContent className="p-4">
-              <BibleDashboard />
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="prophecy">
-          <Card>
-            <CardContent className="p-4">
-              <ProphecyDashboard />
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="settings">
-          <Card>
-            <CardContent className="p-4">
-              <SettingsDashboard />
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="accounts">
-          <Card>
-            <CardContent className="p-4">
-              <AccountDashboard />
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="referential">
-          <Card>
-            <CardContent className="p-4">
-            <ReferentialDashboard />
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+      {/* Fullscreen Content */}
+      <div className="flex-grow p-6 overflow-auto animate-fade-in transition-opacity duration-500">
+        {renderTabContent()}
+      </div>
     </div>
   );
 }
