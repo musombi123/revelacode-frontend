@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Card, CardContent, CardHeader } from '@/components/ui/Card';
@@ -36,7 +36,8 @@ export default function ProphecyDashboard() {
       const data = await response.json();
 
       if (data?.decoded && typeof data.decoded === 'object') {
-        setDecodedOutput(JSON.stringify(data.decoded, null, 2));
+        const formatted = JSON.stringify(data.decoded, null, 2);
+        setDecodedOutput(formatted);
         setTimestamp(new Date().toLocaleString());
 
         addToHistory({
@@ -45,7 +46,6 @@ export default function ProphecyDashboard() {
           input: trimmedInput,
           output: formatted
         });
-        
       } else {
         setDecodedOutput('⚠️ No symbolic meaning detected.');
       }
@@ -62,15 +62,16 @@ export default function ProphecyDashboard() {
       navigator.clipboard.writeText(decodedOutput);
     }
   };
+
   const parsedOutput = (rawJSON) => {
     try {
       const parsed = JSON.parse(rawJSON);
-      const item = parsed?.decoded?.[0];
+      const item = parsed?.[0];
       if (!item) return <p>No decoded content found.</p>;
-  
+
       const symbolKey = Object.keys(item)[0];
       const data = item[symbolKey];
-  
+
       return (
         <div className="space-y-2 text-sm">
           <h3 className="text-xl font-bold text-indigo-600 dark:text-indigo-300">
@@ -89,49 +90,48 @@ export default function ProphecyDashboard() {
       return <pre className="text-red-500">{rawJSON}</pre>;
     }
   };
-   return (
-    <Card className="p-6 space-y-4">
-      <CardContent className="space-y-4">
-        <Input
-          placeholder="Enter prophecy, verse, or question..."
-          value={searchInput}
-          onChange={(e) => setSearchInput(e.target.value)}
-          className="text-base w-full"
-        />
-        <Button
-          onClick={handleDecode}
-          disabled={loading || !searchInput.trim()}
-          className="w-full"
-        >
-          {loading ? '🔄 Decoding...' : 'Decode'}
-        </Button>
 
-        {/* Decoded Result Display */}
-        <Card className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border p-4">
-          <CardHeader>
-            <h2 className="text-xl font-semibold text-indigo-600 dark:text-indigo-300">
-              Decoded Prophecy
-            </h2>
-            <p className="text-sm text-gray-500">{timestamp || '🧠 Awaiting input...'}</p>
-          </CardHeader>
-          <CardContent>
+  return (
+    <div className="space-y-4">
+      <Input
+        placeholder="Enter prophecy, verse, or question..."
+        value={searchInput}
+        onChange={(e) => setSearchInput(e.target.value)}
+        className="text-base w-full"
+      />
+      <Button
+        onClick={handleDecode}
+        disabled={loading || !searchInput.trim()}
+        className="w-full"
+      >
+        {loading ? '🔄 Decoding...' : 'Decode'}
+      </Button>
+
+      {/* Decoded Result Display */}
+      <Card className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border p-4">
+        <CardHeader>
+          <h2 className="text-xl font-semibold text-indigo-600 dark:text-indigo-300">
+            Decoded Prophecy
+          </h2>
+          <p className="text-sm text-gray-500">{timestamp || '🧠 Awaiting input...'}</p>
+        </CardHeader>
+        <CardContent>
           {decodedOutput ? (
             parsedOutput(decodedOutput)
           ) : (
-          <p className="text-gray-600 dark:text-gray-300 text-sm">
-            🧠 Your decoded prophecy will appear here.
+            <p className="text-gray-600 dark:text-gray-300 text-sm">
+              🧠 Your decoded prophecy will appear here.
             </p>
           )}
           {decodedOutput && (
-              <div className="flex justify-end mt-3">
-                <Button variant="ghost" onClick={handleCopy}>
-                  <CopyIcon className="mr-2 h-4 w-4" /> Copy
-                </Button>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </CardContent>
-    </Card>
+            <div className="flex justify-end mt-3">
+              <Button variant="ghost" onClick={handleCopy}>
+                <CopyIcon className="mr-2 h-4 w-4" /> Copy
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
   );
 }
