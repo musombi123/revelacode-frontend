@@ -72,13 +72,15 @@ export default function BibleDashboard() {
   };
 
   const handleSearch = () => {
-    const match = searchInput.match(/^([\dI]{0,2}\s?\w+)\s+(\d+):(\d+)$/i);
+    const trimmed = searchInput.trim();
+    const match = trimmed.match(/^([\dI]{0,2}\s?\w+)\s+(\d+):(\d+)$/i);
     if (!match) return;
 
     const [, bookNameRaw, chapterNum, verseNum] = match;
-    const bookName = bookNameRaw.trim();
+    const bookName = bookNameRaw.trim().toLowerCase();
+
     const bookKey = bookKeys.find(
-      (key) => bibleData[key]?.book.toLowerCase() === bookName.toLowerCase()
+      (key) => bibleData[key]?.book.toLowerCase() === bookName
     );
 
     if (bookKey) {
@@ -102,7 +104,6 @@ export default function BibleDashboard() {
 
   const selectedBook = bibleData[selectedBookKey];
 
-  // Sort books in canonical order:
   const oldBooks = bookKeys
     .filter((key) => oldTestament.includes(bibleData[key]?.book))
     .sort((a, b) => oldTestament.indexOf(bibleData[a].book) - oldTestament.indexOf(bibleData[b].book));
@@ -118,7 +119,7 @@ export default function BibleDashboard() {
         <input
           type="text"
           placeholder="Search e.g. John 3:16"
-          className="w-full p-2 rounded border bg-white text-black dark:bg-white dark:text-black"
+          className="w-full p-2 rounded border bg-white text-black dark:bg-white dark:text-black placeholder-gray-500"
           value={searchInput}
           onChange={(e) => setSearchInput(e.target.value)}
           onKeyDown={(e) => {
@@ -127,7 +128,8 @@ export default function BibleDashboard() {
         />
         <button
           onClick={handleSearch}
-          className="bg-blue-600 text-white px-4 py-2 rounded"
+          disabled={!searchInput.trim()}
+          className="bg-blue-600 text-white px-4 py-2 rounded disabled:opacity-50"
         >
           Search
         </button>
