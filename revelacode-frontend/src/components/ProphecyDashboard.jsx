@@ -35,7 +35,7 @@ export default function ProphecyDashboard() {
 
       const data = await response.json();
 
-      if (data?.decoded && typeof data.decoded === 'object') {
+      if (data?.decoded && Array.isArray(data.decoded)) {
         const formatted = JSON.stringify(data.decoded, null, 2);
         setDecodedOutput(formatted);
         setTimestamp(new Date().toLocaleString());
@@ -66,23 +66,33 @@ export default function ProphecyDashboard() {
   const parsedOutput = (rawJSON) => {
     try {
       const parsed = JSON.parse(rawJSON);
-      const item = parsed?.[0];
-      if (!item) return <p>No decoded content found.</p>;
-
-      const symbolKey = Object.keys(item)[0];
-      const data = item[symbolKey];
+      if (!Array.isArray(parsed) || !parsed.length) {
+        return <p>No decoded content found.</p>;
+      }
 
       return (
-        <div className="space-y-2 text-sm">
-          <h3 className="text-xl font-bold text-indigo-600 dark:text-indigo-300">
-            🔮 Symbol: {symbolKey}
-          </h3>
-          <p><strong>🗝️ Meaning:</strong> {data.meaning}</p>
-          <p><strong>📖 Reference:</strong> {data.reference}</p>
-          <p><strong>🧠 Interpretation:</strong> {data.interpretation}</p>
-          <p><strong>🚦 Status:</strong> {data.status}</p>
-          <p><strong>📌 Tags:</strong> {data.tags?.join(', ')}</p>
-          <p><strong>📝 Notes:</strong> {data.notes}</p>
+        <div className="space-y-4 text-sm">
+          {parsed.map((item, index) => {
+            const symbolKey = Object.keys(item)[0];
+            const data = item[symbolKey];
+
+            return (
+              <div key={index} className="space-y-1">
+                <h3 className="text-xl font-bold text-indigo-600 dark:text-indigo-300">
+                  🔮 Symbol: {symbolKey}
+                </h3>
+                <p><strong>🗝️ Meaning:</strong> {data.meaning}</p>
+                <p><strong>📖 Reference:</strong> {data.reference}</p>
+                <p><strong>🧠 Interpretation:</strong> {data.interpretation}</p>
+                <p><strong>🚦 Status:</strong> {data.status}</p>
+                <p><strong>📌 Tags:</strong> {data.tags?.join(', ')}</p>
+                <p><strong>📝 Notes:</strong> {data.notes}</p>
+                {index < parsed.length - 1 && (
+                  <hr className="border-t border-gray-300 dark:border-gray-600 my-2" />
+                )}
+              </div>
+            );
+          })}
         </div>
       );
     } catch (err) {
