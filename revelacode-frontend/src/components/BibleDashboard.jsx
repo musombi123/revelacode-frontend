@@ -2,6 +2,25 @@ import React, { useEffect, useState } from 'react';
 import { Card, CardContent } from '@/components/ui/Card';
 import { ScrollArea } from '@/components/ui/ScrollArea';
 
+const oldTestament = [
+  'Genesis', 'Exodus', 'Leviticus', 'Numbers', 'Deuteronomy',
+  'Joshua', 'Judges', 'Ruth', '1 Samuel', '2 Samuel',
+  '1 Kings', '2 Kings', '1 Chronicles', '2 Chronicles', 'Ezra',
+  'Nehemiah', 'Esther', 'Job', 'Psalms', 'Proverbs',
+  'Ecclesiastes', 'Song of Solomon', 'Isaiah', 'Jeremiah',
+  'Lamentations', 'Ezekiel', 'Daniel', 'Hosea', 'Joel', 'Amos',
+  'Obadiah', 'Jonah', 'Micah', 'Nahum', 'Habakkuk',
+  'Zephaniah', 'Haggai', 'Zechariah', 'Malachi'
+];
+
+const newTestament = [
+  'Matthew', 'Mark', 'Luke', 'John', 'Acts',
+  'Romans', '1 Corinthians', '2 Corinthians', 'Galatians', 'Ephesians',
+  'Philippians', 'Colossians', '1 Thessalonians', '2 Thessalonians',
+  '1 Timothy', '2 Timothy', 'Titus', 'Philemon', 'Hebrews', 'James',
+  '1 Peter', '2 Peter', '1 John', '2 John', '3 John', 'Jude', 'Revelation'
+];
+
 export default function BibleDashboard() {
   const [bibleData, setBibleData] = useState({});
   const [bookKeys, setBookKeys] = useState([]);
@@ -18,8 +37,7 @@ export default function BibleDashboard() {
         const response = await fetch('/data/kjv.json');
         const data = await response.json();
         setBibleData(data);
-        const keys = Object.keys(data);
-        setBookKeys(keys);
+        setBookKeys(Object.keys(data));
       } catch (error) {
         console.error('Failed to load Bible data:', error);
       }
@@ -71,8 +89,7 @@ export default function BibleDashboard() {
       setSelectedChapterIndex(chapterIndex);
       setHighlightedVerseIndex(verseIndex);
 
-      const selected = bibleData[bookKey];
-      const versesArray = selected.chapters[chapterIndex]?.verses ?? [];
+      const versesArray = bibleData[bookKey].chapters[chapterIndex]?.verses ?? [];
       setVerses(versesArray);
       setViewLevel('verses');
 
@@ -85,14 +102,23 @@ export default function BibleDashboard() {
 
   const selectedBook = bibleData[selectedBookKey];
 
+  // Sort books in canonical order:
+  const oldBooks = bookKeys
+    .filter((key) => oldTestament.includes(bibleData[key]?.book))
+    .sort((a, b) => oldTestament.indexOf(bibleData[a].book) - oldTestament.indexOf(bibleData[b].book));
+
+  const newBooks = bookKeys
+    .filter((key) => newTestament.includes(bibleData[key]?.book))
+    .sort((a, b) => newTestament.indexOf(bibleData[a].book) - newTestament.indexOf(bibleData[b].book));
+
   return (
     <div className="p-4 space-y-4">
-      {/* Search bar always at the top */}
+      {/* Search bar */}
       <div className="flex gap-2 items-center">
         <input
           type="text"
           placeholder="Search e.g. John 3:16"
-          className="w-full p-2 rounded border bg-background text-foreground"
+          className="w-full p-2 rounded border bg-white text-black dark:bg-white dark:text-black"
           value={searchInput}
           onChange={(e) => setSearchInput(e.target.value)}
           onKeyDown={(e) => {
@@ -118,19 +144,42 @@ export default function BibleDashboard() {
       {viewLevel === 'books' && (
         <ScrollArea className="h-[70vh] pr-2 space-y-4">
           <h2 className="font-bold mb-2">📖 Bible Books</h2>
-          <ul className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-            {bookKeys.map((key) => (
-              <li
-                key={key}
-                onClick={() => handleBookClick(key)}
-                className={`cursor-pointer p-2 rounded border text-center hover:bg-blue-100 dark:hover:bg-blue-800 ${
-                  selectedBookKey === key ? 'bg-blue-200 dark:bg-blue-700 font-semibold' : ''
-                }`}
-              >
-                {bibleData[key]?.book}
-              </li>
-            ))}
-          </ul>
+
+          {/* Old Testament */}
+          <div>
+            <h3 className="text-sm font-bold text-muted-foreground mb-1">📜 Old Testament</h3>
+            <ul className="space-y-1">
+              {oldBooks.map((key) => (
+                <li
+                  key={key}
+                  onClick={() => handleBookClick(key)}
+                  className={`cursor-pointer p-2 rounded hover:bg-blue-100 dark:hover:bg-blue-800 ${
+                    selectedBookKey === key ? 'bg-blue-200 dark:bg-blue-700 font-semibold' : ''
+                  }`}
+                >
+                  {bibleData[key]?.book}
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* New Testament */}
+          <div>
+            <h3 className="text-sm font-bold text-muted-foreground mt-4 mb-1">✝️ New Testament</h3>
+            <ul className="space-y-1">
+              {newBooks.map((key) => (
+                <li
+                  key={key}
+                  onClick={() => handleBookClick(key)}
+                  className={`cursor-pointer p-2 rounded hover:bg-blue-100 dark:hover:bg-blue-800 ${
+                    selectedBookKey === key ? 'bg-blue-200 dark:bg-blue-700 font-semibold' : ''
+                  }`}
+                >
+                  {bibleData[key]?.book}
+                </li>
+              ))}
+            </ul>
+          </div>
         </ScrollArea>
       )}
 

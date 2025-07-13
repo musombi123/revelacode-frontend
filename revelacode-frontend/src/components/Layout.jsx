@@ -1,6 +1,6 @@
 import { usePreferences } from '@/context/PreferencesContext';
 
-function YourAppContent() {
+export default function Layout({ children }) {
   const { fontSize } = usePreferences();
 
   const fontSizeClass = {
@@ -11,7 +11,7 @@ function YourAppContent() {
 
   return (
     <div className={`min-h-screen bg-gray-100 dark:bg-gray-900 transition-colors duration-300 ${fontSizeClass}`}>
-      {/* your app routes / dashboard */}
+      {children}
     </div>
   );
 }
