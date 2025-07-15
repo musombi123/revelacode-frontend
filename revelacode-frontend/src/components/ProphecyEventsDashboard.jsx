@@ -1,30 +1,41 @@
 import React, { useEffect, useState } from 'react';
-import { Card, CardContent } from '@/components/ui/Card';
 
-export default function GlobalNewsList() {
-  const [news, setNews] = useState([]);
+export default function ProphecyEventsDashboard() {
+  const [events, setEvents] = useState([]);
 
   useEffect(() => {
-    fetch('https://revelacode-backend.onrender.com/api/news') // change to your backend URL
-      .then(res => res.json())
-      .then(data => setNews(data.news))
-      .catch(err => console.error('Failed to load news', err));
+    const today = new Date().toISOString().split('T')[0];
+    fetch(`/events/events_${today}.json`)
+      .then(res => res.ok ? res.json() : [])
+      .then(data => setEvents(data))
+      .catch(err => console.error('Failed to load events', err));
   }, []);
 
-  if (news.length === 0) return <p className="text-gray-500">No decoded news found.</p>;
+  if (!events.length) {
+    return (
+      <div className="text-gray-500 dark:text-gray-400 text-sm">
+        📡 No prophecy-related global events found today.
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-4">
-      {news.map((item, idx) => (
-        <Card key={idx} className="shadow rounded-xl">
-          <CardContent className="p-4">
-            <h3 className="font-semibold text-indigo-600">{item.title || 'Decoded Headline'}</h3>
-            <p className="text-sm text-gray-700 dark:text-gray-300 mt-2 whitespace-pre-wrap">
-              {item.meaning || JSON.stringify(item)}
-            </p>
-          </CardContent>
-        </Card>
-      ))}
+    <div className="space-y-2">
+      <h3 className="font-semibold text-lg text-indigo-600 dark:text-indigo-300">
+        🌍 Latest Global Events (Prophecy Tracking)
+      </h3>
+      <ul className="space-y-1">
+        {events.map((e, idx) => (
+          <li key={idx} className="border-b pb-2">
+            <a href={e.url} target="_blank" rel="noopener noreferrer"
+               className="text-blue-600 dark:text-blue-400 hover:underline">
+              {e.headline}
+            </a>
+            <p className="text-xs text-gray-600 dark:text-gray-400">{e.description}</p>
+            <span className="text-xs text-gray-400">🗓 {new Date(e.publishedAt).toLocaleString()} — {e.source}</span>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
