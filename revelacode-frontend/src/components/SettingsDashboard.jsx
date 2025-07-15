@@ -23,16 +23,6 @@ export default function SettingsDashboard() {
     window.open('mailto:musombiwilliam769@gmail.com', '_blank');
   };
 
-  const handleSocialLink = (platform) => {
-    const links = {
-      tiktok: 'https://www.tiktok.com/',
-      facebook: 'https://www.facebook.com/',
-      instagram: 'https://www.instagram.com/',
-      whatsapp: 'https://wa.me/+254742466828',
-    };
-    window.open(links[platform], '_blank');
-  };
-
   const fontSizeClass = {
     sm: 'text-sm',
     md: 'text-base',
@@ -108,14 +98,7 @@ export default function SettingsDashboard() {
           </div>
         )}
 
-        {/* Social & support */}
-        <div className="flex justify-center gap-3 pt-4">
-          <Button size="sm" onClick={() => handleSocialLink('tiktok')}>🎵 TikTok</Button>
-          <Button size="sm" onClick={() => handleSocialLink('facebook')}>📘 Facebook</Button>
-          <Button size="sm" onClick={() => handleSocialLink('instagram')}>📸 Instagram</Button>
-          <Button size="sm" onClick={() => handleSocialLink('whatsapp')}>💬 WhatsApp</Button>
-        </div>
-
+        {/* Support */}
         <div className="text-center pt-4">
           <Button variant="outline" onClick={handleSupportClick} className="dark:border-gray-600 dark:hover:bg-gray-700">
             🆘 Contact Support (Gmail)

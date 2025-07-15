@@ -1,9 +1,12 @@
 import React, { useState, Suspense, lazy } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  BookOpen, Search, Settings, Link2, Info, Menu
-} from 'lucide-react';
+import { BookOpen, Search, Menu } from 'lucide-react';
 import ProphecyEventsDashboard from './ProphecyEventsDashboard';
+import { useAuth } from '@/context/AuthContext';
+import LoginModal from './LoginModal';
+import DashboardCard from './common/DashboardCard';
+import BackButton from './common/BackButton';
+import Loading from './common/Loading';
 
 // Lazy load dashboards
 const BibleDashboard = lazy(() => import('./BibleDashboard'));
@@ -11,9 +14,12 @@ const ProphecyDashboard = lazy(() => import('./ProphecyDashboard'));
 const SettingsDashboard = lazy(() => import('./SettingsDashboard'));
 const AccountDashboard = lazy(() => import('./AccountDashboard'));
 const ReferentialDashboard = lazy(() => import('./ReferentialDashboard'));
+import UserAccountDashboard from './UserAccountDashboard';
 
 export default function MainDashboard() {
   const [activeView, setActiveView] = useState('main');
+  const [showLogin, setShowLogin] = useState(false);
+  const { user, loading } = useAuth();
 
   const goBack = () => setActiveView('main');
 
@@ -22,6 +28,14 @@ export default function MainDashboard() {
     visible: { opacity: 1, y: 0 },
     exit: { opacity: 0, y: -10 }
   };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen text-gray-500 dark:text-gray-400">
+        Loading...
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 bg-gray-100 dark:bg-gray-900 min-h-screen transition-colors duration-300">
@@ -35,7 +49,24 @@ export default function MainDashboard() {
             exit="exit"
             className="space-y-6"
           >
-            {/* Top grid of cards */}
+            {/* Top-left More button */}
+            <div className="flex justify-start">
+              <button
+                onClick={() => {
+                  if (!user) {
+                    setShowLogin(true);
+                  } else {
+                    setActiveView('userAccount');
+                  }
+                }}
+                className="flex items-center gap-1 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition"
+              >
+                <Menu className="w-5 h-5" />
+                <span className="text-sm font-medium">More</span>
+              </button>
+            </div>
+
+            {/* Main grid */}
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
               <DashboardCard
                 onClick={() => setActiveView('bible')}
@@ -49,52 +80,15 @@ export default function MainDashboard() {
                 Icon={Search}
                 color="bg-purple-600 dark:bg-purple-500"
               />
-              <DashboardCard
-                onClick={() => setActiveView('menu')}
-                title="More"
-                Icon={Menu}
-                color="bg-gray-700 dark:bg-gray-600"
-              />
             </div>
 
-            {/* Bottom: Prophecy Events */}
+            {/* Events always visible */}
             <ProphecyEventsDashboard />
           </motion.div>
         )}
 
-        {activeView === 'menu' && (
-          <motion.div
-            key="menu"
-            variants={fadeVariant}
-            initial="hidden"
-            animate="visible"
-            exit="exit"
-          >
-            <BackButton onClick={goBack} />
-            <div className="mt-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-              <DashboardCard
-                onClick={() => setActiveView('settings')}
-                title="Settings"
-                Icon={Settings}
-                color="bg-green-600 dark:bg-green-500"
-              />
-              <DashboardCard
-                onClick={() => setActiveView('referential')}
-                title="Referential"
-                Icon={Info}
-                color="bg-yellow-600 dark:bg-yellow-500"
-              />
-              <DashboardCard
-                onClick={() => setActiveView('accounts')}
-                title="Accounts"
-                Icon={Link2}
-                color="bg-pink-600 dark:bg-pink-500"
-              />
-            </div>
-          </motion.div>
-        )}
-
-        {['bible', 'prophecy', 'settings', 'referential', 'accounts'].includes(activeView) && (
+        {/* Single dashboards */}
+        {['bible', 'prophecy', 'settings', 'referential', 'accounts', 'userAccount'].includes(activeView) && (
           <motion.div
             key={activeView}
             variants={fadeVariant}
@@ -110,45 +104,21 @@ export default function MainDashboard() {
                 {activeView === 'settings' && <SettingsDashboard />}
                 {activeView === 'referential' && <ReferentialDashboard />}
                 {activeView === 'accounts' && <AccountDashboard />}
+                {activeView === 'userAccount' && (
+                  <UserAccountDashboard
+                    onOpenSettings={() => setActiveView('settings')}
+                    onOpenAccounts={() => setActiveView('accounts')}
+                    onOpenReferential={() => setActiveView('referential')}
+                  />
+                )}
               </Suspense>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
-  );
-}
 
-// ⭐ Compact & dark-friendly card component
-function DashboardCard({ onClick, title, Icon, color }) {
-  return (
-    <button
-      onClick={onClick}
-      className={`flex flex-col items-center justify-center p-3 rounded-lg text-white hover:scale-105 transform transition ${color} shadow-md dark:shadow dark:shadow-black/40`}
-    >
-      <Icon className="w-8 h-8 mb-1" />
-      <span className="font-semibold text-base">{title}</span>
-    </button>
-  );
-}
-
-// ⭐ Back button
-function BackButton({ onClick }) {
-  return (
-    <button
-      onClick={onClick}
-      className="flex items-center text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition"
-    >
-      ← <span className="ml-1">Back</span>
-    </button>
-  );
-}
-
-// ⭐ Loading fallback
-function Loading() {
-  return (
-    <div className="flex justify-center items-center p-10 text-gray-500 dark:text-gray-400">
-      Loading...
+      {/* Login modal */}
+      {showLogin && <LoginModal onClose={() => setShowLogin(false)} />}
     </div>
   );
 }
