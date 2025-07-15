@@ -1,53 +1,79 @@
 import React, { useState } from 'react';
+import { X } from 'lucide-react';
 
-export default function LoginModal({ onLoginSuccess, onClose }) {
+export default function LoginModal({ onClose }) {
+  const [mode, setMode] = useState('login'); // login | register
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [errorMessage, setErrorMessage] = useState('');
+  const [message, setMessage] = useState('');
 
-  const handleSubmit = () => {
-    // Perform authentication with backend (e.g., API call)
-    if (username === 'test' && password === 'password') {
-      onLoginSuccess(username);
-      onClose();
-    } else {
-      setErrorMessage('Invalid credentials');
+  const backendUrl = import.meta.env.VITE_API_URL; // e.g. https://revelacode-backend.onrender.com
+
+  const handleSubmit = async () => {
+    if (!username || !password) return;
+
+    try {
+      const res = await fetch(`${backendUrl}/${mode}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setMessage(`✅ ${mode === 'login' ? 'Logged in' : 'Account created'} successfully!`);
+        window.location.reload(); // or better: call setUser in AuthContext
+      } else {
+        setMessage(`❌ ${data.message || 'Something went wrong'}`);
+      }
+    } catch (err) {
+      console.error(err);
+      setMessage('❌ Network error');
     }
   };
 
   return (
-    <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex justify-center items-center z-50">
-      <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg">
-        <h2 className="text-xl font-semibold text-gray-700 dark:text-gray-100">Login</h2>
-        {errorMessage && <p className="text-red-500">{errorMessage}</p>}
-        <div className="mt-4 space-y-3">
-          <input
-            type="text"
-            className="w-full p-2 border border-gray-300 rounded-md dark:bg-gray-700 dark:text-gray-200"
-            placeholder="Username"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-          />
-          <input
-            type="password"
-            className="w-full p-2 border border-gray-300 rounded-md dark:bg-gray-700 dark:text-gray-200"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-        </div>
+    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+      <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-sm space-y-4 relative">
+        <button onClick={onClose} className="absolute top-2 right-2 text-gray-500 hover:text-gray-800">
+          <X className="w-5 h-5" />
+        </button>
+        <h2 className="text-lg font-semibold text-center">
+          {mode === 'login' ? '🔑 Login to your account' : '📝 Create a new account'}
+        </h2>
+        <input
+          type="text"
+          placeholder="Username"
+          value={username}
+          onChange={e => setUsername(e.target.value)}
+          className="w-full p-2 rounded border bg-background text-foreground"
+        />
+        <input
+          type="password"
+          placeholder="Password"
+          value={password}
+          onChange={e => setPassword(e.target.value)}
+          className="w-full p-2 rounded border bg-background text-foreground"
+        />
         <button
           onClick={handleSubmit}
-          className="w-full mt-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+          className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition"
         >
-          Login
+          {mode === 'login' ? 'Login' : 'Register'}
         </button>
-        <button
-          onClick={onClose}
-          className="w-full mt-2 py-2 border border-gray-300 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600"
-        >
-          Close
-        </button>
+        <p className="text-center text-sm text-gray-500">
+          {mode === 'login' ? (
+            <>
+              Don’t have an account?{' '}
+              <button onClick={() => setMode('register')} className="text-blue-600 hover:underline">Register</button>
+            </>
+          ) : (
+            <>
+              Already have an account?{' '}
+              <button onClick={() => setMode('login')} className="text-blue-600 hover:underline">Login</button>
+            </>
+          )}
+        </p>
+        {message && <p className="text-center text-sm">{message}</p>}
       </div>
     </div>
   );
