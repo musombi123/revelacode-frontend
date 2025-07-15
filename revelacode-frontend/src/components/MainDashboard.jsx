@@ -66,20 +66,37 @@ export default function MainDashboard() {
               </button>
             </div>
 
-            {/* Main grid */}
+            {/* Main grid with tooltip and animation */}
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-              <DashboardCard
-                onClick={() => setActiveView('bible')}
-                title="Bible"
-                Icon={BookOpen}
-                color="bg-blue-600 dark:bg-blue-500"
-              />
-              <DashboardCard
-                onClick={() => setActiveView('prophecy')}
-                title="Prophecy"
-                Icon={Search}
-                color="bg-purple-600 dark:bg-purple-500"
-              />
+              <motion.div whileHover={{ scale: 1.05 }}>
+                <DashboardCard
+                  onClick={() => setActiveView('bible')}
+                  title="Bible"
+                  Icon={BookOpen}
+                  color="bg-blue-600 dark:bg-blue-500"
+                />
+              </motion.div>
+
+              {user ? (
+                <motion.div whileHover={{ scale: 1.05 }}>
+                  <DashboardCard
+                    onClick={() => setActiveView('prophecy')}
+                    title="Prophecy"
+                    Icon={Search}
+                    color="bg-purple-600 dark:bg-purple-500"
+                  />
+                </motion.div>
+              ) : (
+                <motion.div whileHover={{ scale: 1.02 }} className="relative group">
+                  <div className="flex flex-col items-center justify-center p-3 rounded-lg bg-gray-400/40 text-gray-300 cursor-not-allowed shadow-md dark:shadow dark:shadow-black/40">
+                    <Search className="w-8 h-8 mb-1" />
+                    <span className="font-semibold text-base">Prophecy</span>
+                  </div>
+                  <div className="absolute bottom-full mb-1 hidden group-hover:block bg-black text-white text-xs rounded px-2 py-1">
+                    🔒 Login to unlock
+                  </div>
+                </motion.div>
+              )}
             </div>
 
             {/* Events always visible */}
