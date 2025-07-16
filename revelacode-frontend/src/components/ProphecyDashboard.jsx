@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Card, CardContent, CardHeader } from '@/components/ui/Card';
@@ -6,15 +7,22 @@ import { CopyIcon } from 'lucide-react';
 import { useHistory } from '@/context/HistoryContext';
 
 export default function ProphecyDashboard() {
+  const { user, isGuest } = useAuth();
   const { addToHistory } = useHistory();
   const [searchInput, setSearchInput] = useState('');
   const [decodedOutput, setDecodedOutput] = useState('');
   const [timestamp, setTimestamp] = useState('');
   const [loading, setLoading] = useState(false);
+  const [guestDecodeCount, setGuestDecodeCount] = useState(0);
 
   const baseUrl = import.meta.env.VITE_API_URL;
 
   const handleDecode = async () => {
+    if (isGuest && guestDecodeCount >= 5) {
+      alert('⚠ Guest mode limit reached: Only 5 decodes per day.');
+      return;
+    }
+
     const trimmedInput = searchInput.trim();
     if (!trimmedInput) return;
 
@@ -35,16 +43,22 @@ export default function ProphecyDashboard() {
 
       const data = await response.json();
 
-      if (Array.isArray(data?.decoded)) {
-        setDecodedOutput(data.decoded); // save as parsed array
+      if (data?.decoded && typeof data.decoded === 'object') {
+        const formatted = JSON.stringify(data.decoded, null, 2);
+        setDecodedOutput(formatted);
         setTimestamp(new Date().toLocaleString());
 
         addToHistory({
           id: Date.now(),
           timestamp: new Date().toLocaleString(),
           input: trimmedInput,
-          output: data.decoded   // save structured data
+          output: formatted
         });
+
+        if (isGuest) {
+          setGuestDecodeCount(prev => prev + 1);
+        }
+
       } else {
         setDecodedOutput('⚠️ No symbolic meaning detected.');
       }
@@ -56,37 +70,13 @@ export default function ProphecyDashboard() {
     }
   };
 
-  const handleCopy = () => {
-    if (decodedOutput && Array.isArray(decodedOutput)) {
-      navigator.clipboard.writeText(JSON.stringify(decodedOutput, null, 2));
-    }
-  };
-
-  const parsedOutput = (decodedArray) => {
-    if (!Array.isArray(decodedArray)) return <p>No decoded symbols found.</p>;
-
-    return decodedArray.map((item, idx) => {
-      const symbolKey = Object.keys(item)[0];
-      const data = item[symbolKey];
-
-      return (
-        <div key={idx} className="space-y-2 text-sm border-b pb-2 mb-2">
-          <h3 className="text-xl font-bold text-indigo-600 dark:text-indigo-300">
-            🔮 Symbol: {symbolKey}
-          </h3>
-          <p><strong>🗝️ Meaning:</strong> {data.meaning}</p>
-          <p><strong>📖 Reference:</strong> {data.reference}</p>
-          <p><strong>🧠 Interpretation:</strong> {data.interpretation}</p>
-          <p><strong>🚦 Status:</strong> {data.status}</p>
-          <p><strong>📌 Tags:</strong> {data.tags?.join(', ')}</p>
-          <p><strong>📝 Notes:</strong> {data.notes}</p>
-        </div>
-      );
-    });
-  };
-
   return (
     <div className="space-y-4">
+      {isGuest && (
+        <p className="text-xs text-yellow-600 dark:text-yellow-400">
+          ⚠ Guest mode: You can only decode 5 prophecies per day. Used: {guestDecodeCount}/5
+        </p>
+      )}
       <Input
         placeholder="Enter prophecy, verse, or question..."
         value={searchInput}
@@ -95,12 +85,13 @@ export default function ProphecyDashboard() {
       />
       <Button
         onClick={handleDecode}
-        disabled={loading || !searchInput.trim()}
+        disabled={loading || !searchInput.trim() || (isGuest && guestDecodeCount >= 5)}
         className="w-full"
       >
         {loading ? '🔄 Decoding...' : 'Decode'}
       </Button>
 
+      {/* Display output */}
       <Card className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border p-4">
         <CardHeader>
           <h2 className="text-xl font-semibold text-indigo-600 dark:text-indigo-300">
@@ -109,13 +100,16 @@ export default function ProphecyDashboard() {
           <p className="text-sm text-gray-500">{timestamp || '🧠 Awaiting input...'}</p>
         </CardHeader>
         <CardContent>
-          {Array.isArray(decodedOutput)
-            ? parsedOutput(decodedOutput)
-            : <p className="text-gray-600 dark:text-gray-300 text-sm">{decodedOutput}</p>}
-
-          {Array.isArray(decodedOutput) && (
+          {decodedOutput ? (
+            <pre className="text-xs whitespace-pre-wrap">{decodedOutput}</pre>
+          ) : (
+            <p className="text-gray-600 dark:text-gray-300 text-sm">
+              🧠 Your decoded prophecy will appear here.
+            </p>
+          )}
+          {decodedOutput && (
             <div className="flex justify-end mt-3">
-              <Button variant="ghost" onClick={handleCopy}>
+              <Button variant="ghost" onClick={() => navigator.clipboard.writeText(decodedOutput)}>
                 <CopyIcon className="mr-2 h-4 w-4" /> Copy
               </Button>
             </div>

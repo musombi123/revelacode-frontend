@@ -1,27 +1,8 @@
-import React, { useState, Suspense, lazy } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { BookOpen, Search, Menu } from 'lucide-react';
-import { useAuth } from '@/context/AuthContext';
-import ProphecyEventsDashboard from './ProphecyEventsDashboard';
-import LoginModal from './LoginModal';
-import UserAccountDashboard from './UserAccountDashboard';
-import DashboardCard from './common/DashboardCard';
-import BackButton from './common/BackButton';
-import Loading from './common/Loading';
-import StartModal from './StartModal'; // 👈 new modal we use
-
-// Lazy load dashboards
-const BibleDashboard = lazy(() => import('./BibleDashboard'));
-const ProphecyDashboard = lazy(() => import('./ProphecyDashboard'));
-const SettingsDashboard = lazy(() => import('./SettingsDashboard'));
-const AccountDashboard = lazy(() => import('./AccountDashboard'));
-const ReferentialDashboard = lazy(() => import('./ReferentialDashboard'));
-
+// ... same imports
 export default function MainDashboard() {
   const [activeView, setActiveView] = useState('main');
   const [showLogin, setShowLogin] = useState(false);
-  const [showStart, setShowStart] = useState(true); // 👈 show at first load
-  const { user, isGuest, loading, guestMode } = useAuth(); // get guestMode from context
+  const { user, isGuest, loading } = useAuth();
 
   const goBack = () => setActiveView('main');
 
@@ -41,20 +22,6 @@ export default function MainDashboard() {
 
   return (
     <div className="p-6 bg-gray-100 dark:bg-gray-900 min-h-screen transition-colors duration-300">
-      {/* Start modal */}
-      {showStart && (
-        <StartModal
-          onLogin={() => {
-            setShowStart(false);
-            setShowLogin(true);
-          }}
-          onGuest={() => {
-            setShowStart(false);
-            guestMode(); // activate guest mode
-          }}
-        />
-      )}
-
       <AnimatePresence mode="wait">
         {activeView === 'main' && (
           <motion.div
@@ -86,14 +53,12 @@ export default function MainDashboard() {
                 Icon={BookOpen}
                 color="bg-blue-600 dark:bg-blue-500"
               />
-              {(user && !isGuest) && (
-                <DashboardCard
-                  onClick={() => setActiveView('prophecy')}
-                  title="Prophecy"
-                  Icon={Search}
-                  color="bg-purple-600 dark:bg-purple-500"
-                />
-              )}
+              <DashboardCard
+                onClick={() => setActiveView('prophecy')}
+                title="Prophecy"
+                Icon={Search}
+                color="bg-purple-600 dark:bg-purple-500"
+              />
             </div>
 
             {/* Events always visible */}
