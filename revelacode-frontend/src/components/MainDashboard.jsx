@@ -1,9 +1,10 @@
 import React, { useState, Suspense, lazy } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { BookOpen, Search, Menu } from 'lucide-react';
-import ProphecyEventsDashboard from './ProphecyEventsDashboard';
 import { useAuth } from '@/context/AuthContext';
+import ProphecyEventsDashboard from './ProphecyEventsDashboard';
 import LoginModal from './LoginModal';
+import UserAccountDashboard from './UserAccountDashboard';
 import DashboardCard from './common/DashboardCard';
 import BackButton from './common/BackButton';
 import Loading from './common/Loading';
@@ -14,12 +15,11 @@ const ProphecyDashboard = lazy(() => import('./ProphecyDashboard'));
 const SettingsDashboard = lazy(() => import('./SettingsDashboard'));
 const AccountDashboard = lazy(() => import('./AccountDashboard'));
 const ReferentialDashboard = lazy(() => import('./ReferentialDashboard'));
-import UserAccountDashboard from './UserAccountDashboard';
 
 export default function MainDashboard() {
   const [activeView, setActiveView] = useState('main');
   const [showLogin, setShowLogin] = useState(false);
-  const { user, loading } = useAuth();
+  const { user, isGuest, loading } = useAuth();
 
   const goBack = () => setActiveView('main');
 
@@ -51,51 +51,40 @@ export default function MainDashboard() {
           >
             {/* Top-left More button */}
             <div className="flex justify-start">
-              <button
-                onClick={() => {
-                  if (!user) {
-                    setShowLogin(true);
-                  } else {
-                    setActiveView('userAccount');
-                  }
-                }}
-                className="flex items-center gap-1 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition"
-              >
-                <Menu className="w-5 h-5" />
-                <span className="text-sm font-medium">More</span>
-              </button>
+              {(user && !isGuest) ? (
+                <button
+                  onClick={() => setActiveView('userAccount')}
+                  className="flex items-center gap-1 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition"
+                >
+                  <Menu className="w-5 h-5" />
+                  <span className="text-sm font-medium">More</span>
+                </button>
+              ) : (
+                <button
+                  onClick={() => setShowLogin(true)}
+                  className="flex items-center gap-1 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition"
+                >
+                  <Menu className="w-5 h-5" />
+                  <span className="text-sm font-medium">More</span>
+                </button>
+              )}
             </div>
 
-            {/* Main grid with tooltip and animation */}
+            {/* Main grid */}
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-              <motion.div whileHover={{ scale: 1.05 }}>
+              <DashboardCard
+                onClick={() => setActiveView('bible')}
+                title="Bible"
+                Icon={BookOpen}
+                color="bg-blue-600 dark:bg-blue-500"
+              />
+              {(user && !isGuest) && (
                 <DashboardCard
-                  onClick={() => setActiveView('bible')}
-                  title="Bible"
-                  Icon={BookOpen}
-                  color="bg-blue-600 dark:bg-blue-500"
+                  onClick={() => setActiveView('prophecy')}
+                  title="Prophecy"
+                  Icon={Search}
+                  color="bg-purple-600 dark:bg-purple-500"
                 />
-              </motion.div>
-
-              {user ? (
-                <motion.div whileHover={{ scale: 1.05 }}>
-                  <DashboardCard
-                    onClick={() => setActiveView('prophecy')}
-                    title="Prophecy"
-                    Icon={Search}
-                    color="bg-purple-600 dark:bg-purple-500"
-                  />
-                </motion.div>
-              ) : (
-                <motion.div whileHover={{ scale: 1.02 }} className="relative group">
-                  <div className="flex flex-col items-center justify-center p-3 rounded-lg bg-gray-400/40 text-gray-300 cursor-not-allowed shadow-md dark:shadow dark:shadow-black/40">
-                    <Search className="w-8 h-8 mb-1" />
-                    <span className="font-semibold text-base">Prophecy</span>
-                  </div>
-                  <div className="absolute bottom-full mb-1 hidden group-hover:block bg-black text-white text-xs rounded px-2 py-1">
-                    🔒 Login to unlock
-                  </div>
-                </motion.div>
               )}
             </div>
 
