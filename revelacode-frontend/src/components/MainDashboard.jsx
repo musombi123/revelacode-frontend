@@ -5,7 +5,7 @@ import { BookOpen, Search, Menu } from 'lucide-react';
 import { useAuth } from './hooks/useAuth'; // make sure this is correct
 import DashboardCard from './common/DashboardCard';
 import BackButton from './common/BackButton';
-import Loading from './Loading';
+import Loading from './common/Loading';
 import LoginModal from './LoginModal';
 import ProphecyEventsDashboard from './ProphecyEventsDashboard';
 
