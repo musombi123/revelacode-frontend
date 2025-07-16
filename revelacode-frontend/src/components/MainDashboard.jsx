@@ -3,8 +3,8 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { BookOpen, Search, Menu } from 'lucide-react';
 
 import { useAuth } from './hooks/useAuth'; // make sure this is correct
-import DashboardCard from './DashboardCard';
-import BackButton from './BackButton';
+import DashboardCard from './common/DashboardCard';
+import BackButton from './common/BackButton';
 import Loading from './Loading';
 import LoginModal from './LoginModal';
 import ProphecyEventsDashboard from './ProphecyEventsDashboard';
