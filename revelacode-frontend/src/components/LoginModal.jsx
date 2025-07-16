@@ -1,79 +1,118 @@
 import React, { useState } from 'react';
 import { X } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
 
 export default function LoginModal({ onClose }) {
-  const [mode, setMode] = useState('login'); // login | register
-  const [username, setUsername] = useState('');
+  const { login, register } = useAuth();
+  const [mode, setMode] = useState('register'); // or 'login'
+  const [fullName, setFullName] = useState('');
+  const [contact, setContact] = useState(''); // phone or email
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [message, setMessage] = useState('');
 
-  const backendUrl = import.meta.env.VITE_API_URL; // e.g. https://revelacode-backend.onrender.com
-
-  const handleSubmit = async () => {
-    if (!username || !password) return;
-
+  const handleRegister = async () => {
+    if (!fullName || !contact || !password || !confirmPassword) {
+      setMessage('⚠️ Please fill all fields.');
+      return;
+    }
+    if (password !== confirmPassword) {
+      setMessage('❌ Passwords do not match.');
+      return;
+    }
     try {
-      const res = await fetch(`${backendUrl}/${mode}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password })
-      });
-      const data = await res.json();
-      if (res.ok) {
-        setMessage(`✅ ${mode === 'login' ? 'Logged in' : 'Account created'} successfully!`);
-        window.location.reload(); // or better: call setUser in AuthContext
-      } else {
-        setMessage(`❌ ${data.message || 'Something went wrong'}`);
-      }
+      await register({ fullName, contact, password });
+      setMessage('✅ Welcome to REVELACODE — where prophecy meets tech in our generation.');
+      setTimeout(onClose, 2000); // auto-close after welcome
     } catch (err) {
-      console.error(err);
-      setMessage('❌ Network error');
+      setMessage('❌ Registration failed.');
+    }
+  };
+
+  const handleLogin = async () => {
+    if (!contact || !password) {
+      setMessage('⚠️ Enter your contact and password.');
+      return;
+    }
+    try {
+      await login({ contact, password });
+      setMessage('✅ Welcome back!');
+      setTimeout(onClose, 1000);
+    } catch (err) {
+      setMessage('❌ Invalid login.');
     }
   };
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-      <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-sm space-y-4 relative">
-        <button onClick={onClose} className="absolute top-2 right-2 text-gray-500 hover:text-gray-800">
-          <X className="w-5 h-5" />
+    <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50">
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-md p-6 relative">
+        <button
+          onClick={onClose}
+          className="absolute top-3 right-3 text-gray-500 hover:text-gray-800 dark:hover:text-white"
+        >
+          <X />
         </button>
-        <h2 className="text-lg font-semibold text-center">
-          {mode === 'login' ? '🔑 Login to your account' : '📝 Create a new account'}
+
+        <h2 className="text-xl font-semibold text-center mb-4">
+          {mode === 'register' ? '📝 Create a new account' : '🔑 Login'}
         </h2>
+
+        {mode === 'register' && (
+          <input
+            type="text"
+            placeholder="Full name"
+            className="w-full mb-2 p-2 rounded border dark:bg-gray-700 dark:text-white"
+            value={fullName}
+            onChange={(e) => setFullName(e.target.value)}
+          />
+        )}
+
         <input
           type="text"
-          placeholder="Username"
-          value={username}
-          onChange={e => setUsername(e.target.value)}
-          className="w-full p-2 rounded border bg-background text-foreground"
+          placeholder="Phone number or Email"
+          className="w-full mb-2 p-2 rounded border dark:bg-gray-700 dark:text-white"
+          value={contact}
+          onChange={(e) => setContact(e.target.value)}
         />
         <input
           type="password"
           placeholder="Password"
+          className="w-full mb-2 p-2 rounded border dark:bg-gray-700 dark:text-white"
           value={password}
-          onChange={e => setPassword(e.target.value)}
-          className="w-full p-2 rounded border bg-background text-foreground"
+          onChange={(e) => setPassword(e.target.value)}
         />
+        {mode === 'register' && (
+          <input
+            type="password"
+            placeholder="Confirm password"
+            className="w-full mb-2 p-2 rounded border dark:bg-gray-700 dark:text-white"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+          />
+        )}
+
         <button
-          onClick={handleSubmit}
-          className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition"
+          onClick={mode === 'register' ? handleRegister : handleLogin}
+          className="w-full bg-blue-600 text-white py-2 rounded mt-2"
         >
-          {mode === 'login' ? 'Login' : 'Register'}
+          {mode === 'register' ? 'Register' : 'Login'}
         </button>
-        <p className="text-center text-sm text-gray-500">
-          {mode === 'login' ? (
-            <>
-              Don’t have an account?{' '}
-              <button onClick={() => setMode('register')} className="text-blue-600 hover:underline">Register</button>
+
+        <p className="text-sm text-center mt-2 text-gray-600 dark:text-gray-400">
+          {mode === 'register' ? (
+            <>Already have an account?{' '}
+              <span onClick={() => { setMode('login'); setMessage(''); }} className="text-blue-600 cursor-pointer">Login</span>
             </>
           ) : (
-            <>
-              Already have an account?{' '}
-              <button onClick={() => setMode('login')} className="text-blue-600 hover:underline">Login</button>
+            <>New user?{' '}
+              <span onClick={() => { setMode('register'); setMessage(''); }} className="text-blue-600 cursor-pointer">Create account</span>
             </>
           )}
         </p>
-        {message && <p className="text-center text-sm">{message}</p>}
+
+        {message && (
+          <p className="text-xs text-center mt-2 text-red-500 dark:text-red-400">{message}</p>
+        )}
       </div>
     </div>
   );
