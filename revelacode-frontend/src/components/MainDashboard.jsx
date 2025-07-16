@@ -2,7 +2,7 @@ import React, { useState, Suspense } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { BookOpen, Search, Menu } from 'lucide-react';
 
-import { useAuth } from '../hooks/useAuth'; // make sure this is correct
+import { useAuth } from './hooks/useAuth'; // make sure this is correct
 import DashboardCard from './DashboardCard';
 import BackButton from './BackButton';
 import Loading from './Loading';
