@@ -5,7 +5,7 @@ export default function ProphecyEventsDashboard() {
 
   useEffect(() => {
     const today = new Date().toISOString().split('T')[0];
-    fetch(`/events/events_${today}.json`)
+    fetch(`https://revelacode-backend.onrender.com/events_decoded/events_${today}.json`)
       .then(res => res.ok ? res.json() : [])
       .then(data => setEvents(data))
       .catch(err => console.error('Failed to load events', err));
