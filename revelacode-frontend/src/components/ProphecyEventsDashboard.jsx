@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 
+// 🔗 Connect to backend via VITE_API_URL
 const baseUrl = import.meta.env.VITE_API_URL;
 
 export default function ProphecyEventsDashboard() {
@@ -7,20 +8,16 @@ export default function ProphecyEventsDashboard() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const today = new Date().toISOString().split('T')[0];
-    const url = `${baseUrl}/events_decoded/events_${today}.json`;
-
-    fetch(url)
+    // 🔄 Use REST API instead of .json files
+    fetch(`${baseUrl}/api/events`)
       .then(res => {
-        if (!res.ok) {
-          throw new Error(`Failed to fetch: ${res.status}`);
-        }
+        if (!res.ok) throw new Error(`Failed to fetch: ${res.status}`);
         return res.json();
       })
       .then(data => setEvents(data))
       .catch(err => {
-        console.error('❌ Failed to load events:', err);
-        setError('Could not load events from backend.');
+        console.error("❌ Failed to load events:", err);
+        setError("Could not load events from backend.");
       });
   }, []);
 

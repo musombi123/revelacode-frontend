@@ -1,4 +1,22 @@
-// ... same imports
+import React, { useState, Suspense } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { BookOpen, Search, Menu } from 'lucide-react';
+
+import { useAuth } from '../hooks/useAuth'; // make sure this is correct
+import DashboardCard from './DashboardCard';
+import BackButton from './BackButton';
+import Loading from './Loading';
+import LoginModal from './LoginModal';
+import ProphecyEventsDashboard from './ProphecyEventsDashboard';
+
+// Lazy loaded dashboards
+const BibleDashboard = React.lazy(() => import('./BibleDashboard'));
+const ProphecyDashboard = React.lazy(() => import('./ProphecyDashboard'));
+const SettingsDashboard = React.lazy(() => import('./SettingsDashboard'));
+const ReferentialDashboard = React.lazy(() => import('./ReferentialDashboard'));
+const AccountDashboard = React.lazy(() => import('./AccountDashboard'));
+const UserAccountDashboard = React.lazy(() => import('./UserAccountDashboard'));
+
 export default function MainDashboard() {
   const [activeView, setActiveView] = useState('main');
   const [showLogin, setShowLogin] = useState(false);
@@ -9,7 +27,7 @@ export default function MainDashboard() {
   const fadeVariant = {
     hidden: { opacity: 0, y: 10 },
     visible: { opacity: 1, y: 0 },
-    exit: { opacity: 0, y: -10 }
+    exit: { opacity: 0, y: -10 },
   };
 
   if (loading) {
@@ -32,7 +50,7 @@ export default function MainDashboard() {
             exit="exit"
             className="space-y-6"
           >
-            {/* Top-left More button */}
+            {/* More button */}
             {(user && !isGuest) && (
               <div className="flex justify-start">
                 <button
@@ -45,7 +63,7 @@ export default function MainDashboard() {
               </div>
             )}
 
-            {/* Main grid */}
+            {/* Dashboard Cards */}
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
               <DashboardCard
                 onClick={() => setActiveView('bible')}
@@ -61,12 +79,12 @@ export default function MainDashboard() {
               />
             </div>
 
-            {/* Events always visible */}
+            {/* Live Events from backend */}
             <ProphecyEventsDashboard />
           </motion.div>
         )}
 
-        {/* Single dashboards */}
+        {/* Sub Dashboards */}
         {['bible', 'prophecy', 'settings', 'referential', 'accounts', 'userAccount'].includes(activeView) && (
           <motion.div
             key={activeView}
@@ -96,7 +114,7 @@ export default function MainDashboard() {
         )}
       </AnimatePresence>
 
-      {/* Login modal */}
+      {/* Auth */}
       {showLogin && <LoginModal onClose={() => setShowLogin(false)} />}
     </div>
   );
