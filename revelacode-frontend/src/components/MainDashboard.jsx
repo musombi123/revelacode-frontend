@@ -8,6 +8,7 @@ import UserAccountDashboard from './UserAccountDashboard';
 import DashboardCard from './common/DashboardCard';
 import BackButton from './common/BackButton';
 import Loading from './common/Loading';
+import StartModal from './StartModal'; // 👈 new modal we use
 
 // Lazy load dashboards
 const BibleDashboard = lazy(() => import('./BibleDashboard'));
@@ -19,7 +20,8 @@ const ReferentialDashboard = lazy(() => import('./ReferentialDashboard'));
 export default function MainDashboard() {
   const [activeView, setActiveView] = useState('main');
   const [showLogin, setShowLogin] = useState(false);
-  const { user, isGuest, loading } = useAuth();
+  const [showStart, setShowStart] = useState(true); // 👈 show at first load
+  const { user, isGuest, loading, guestMode } = useAuth(); // get guestMode from context
 
   const goBack = () => setActiveView('main');
 
@@ -39,6 +41,20 @@ export default function MainDashboard() {
 
   return (
     <div className="p-6 bg-gray-100 dark:bg-gray-900 min-h-screen transition-colors duration-300">
+      {/* Start modal */}
+      {showStart && (
+        <StartModal
+          onLogin={() => {
+            setShowStart(false);
+            setShowLogin(true);
+          }}
+          onGuest={() => {
+            setShowStart(false);
+            guestMode(); // activate guest mode
+          }}
+        />
+      )}
+
       <AnimatePresence mode="wait">
         {activeView === 'main' && (
           <motion.div
@@ -50,8 +66,8 @@ export default function MainDashboard() {
             className="space-y-6"
           >
             {/* Top-left More button */}
-            <div className="flex justify-start">
-              {(user && !isGuest) ? (
+            {(user && !isGuest) && (
+              <div className="flex justify-start">
                 <button
                   onClick={() => setActiveView('userAccount')}
                   className="flex items-center gap-1 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition"
@@ -59,16 +75,8 @@ export default function MainDashboard() {
                   <Menu className="w-5 h-5" />
                   <span className="text-sm font-medium">More</span>
                 </button>
-              ) : (
-                <button
-                  onClick={() => setShowLogin(true)}
-                  className="flex items-center gap-1 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition"
-                >
-                  <Menu className="w-5 h-5" />
-                  <span className="text-sm font-medium">More</span>
-                </button>
-              )}
-            </div>
+              </div>
+            )}
 
             {/* Main grid */}
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">

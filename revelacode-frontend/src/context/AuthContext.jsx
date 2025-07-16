@@ -1,77 +1,58 @@
-import React, { createContext, useState, useEffect, useContext } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 
+// Create context
 const AuthContext = createContext();
 
+// Provider
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null); // { username, role }
+  const [user, setUser] = useState(null);      // real logged in user
+  const [isGuest, setIsGuest] = useState(false); // guest mode flag
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const username = localStorage.getItem('username');
-    if (username) {
-      fetch('/api/verify', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username }),
-      })
-        .then(res => res.json())
-        .then(data => {
-          if (data.valid) {
-            setUser({ username: data.username, role: data.role });
-          } else {
-            setUser(null);
-            localStorage.removeItem('username');
-          }
-        })
-        .catch(() => setUser(null))
-        .finally(() => setLoading(false));
-    } else {
-      setLoading(false);
+    // On load: check localStorage
+    const savedUser = localStorage.getItem('user');
+    const guest = localStorage.getItem('isGuest') === 'true';
+
+    if (savedUser) {
+      setUser(JSON.parse(savedUser));
+      setIsGuest(false);
+    } else if (guest) {
+      setUser(null);
+      setIsGuest(true);
     }
+    setLoading(false);
   }, []);
 
-  const login = async (username, password) => {
-    const res = await fetch('/api/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password }),
-    });
-    const data = await res.json();
-    if (data.success) {
-      setUser({ username: data.username, role: data.role });
-      localStorage.setItem('username', data.username);
-    } else {
-      throw new Error(data.message);
-    }
-  };
-
-  const register = async (username, password) => {
-    const res = await fetch('/api/register', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password }),
-    });
-    const data = await res.json();
-    if (data.success) {
-      // Auto-login
-      await login(username, password);
-    } else {
-      throw new Error(data.message);
-    }
+  const login = (userData) => {
+    setUser(userData);
+    setIsGuest(false);
+    localStorage.setItem('user', JSON.stringify(userData));
+    localStorage.removeItem('isGuest');
   };
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem('username');
+    setIsGuest(false);
+    localStorage.removeItem('user');
+    localStorage.removeItem('isGuest');
+  };
+
+  const guestMode = () => {
+    setUser(null);
+    setIsGuest(true);
+    localStorage.setItem('isGuest', 'true');
+    localStorage.removeItem('user');
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
+    <AuthContext.Provider value={{ user, isGuest, loading, login, logout, guestMode }}>
       {children}
     </AuthContext.Provider>
   );
 }
 
+// Hook
 export function useAuth() {
   return useContext(AuthContext);
 }
