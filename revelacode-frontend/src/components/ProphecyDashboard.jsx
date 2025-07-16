@@ -35,16 +35,15 @@ export default function ProphecyDashboard() {
 
       const data = await response.json();
 
-      if (data?.decoded && Array.isArray(data.decoded)) {
-        const formatted = JSON.stringify(data.decoded, null, 2);
-        setDecodedOutput(formatted);
+      if (Array.isArray(data?.decoded)) {
+        setDecodedOutput(data.decoded); // save as parsed array
         setTimestamp(new Date().toLocaleString());
 
         addToHistory({
           id: Date.now(),
           timestamp: new Date().toLocaleString(),
           input: trimmedInput,
-          output: formatted
+          output: data.decoded   // save structured data
         });
       } else {
         setDecodedOutput('⚠️ No symbolic meaning detected.');
@@ -58,47 +57,32 @@ export default function ProphecyDashboard() {
   };
 
   const handleCopy = () => {
-    if (decodedOutput) {
-      navigator.clipboard.writeText(decodedOutput);
+    if (decodedOutput && Array.isArray(decodedOutput)) {
+      navigator.clipboard.writeText(JSON.stringify(decodedOutput, null, 2));
     }
   };
 
-  const parsedOutput = (rawJSON) => {
-    try {
-      const parsed = JSON.parse(rawJSON);
-      if (!Array.isArray(parsed) || !parsed.length) {
-        return <p>No decoded content found.</p>;
-      }
+  const parsedOutput = (decodedArray) => {
+    if (!Array.isArray(decodedArray)) return <p>No decoded symbols found.</p>;
+
+    return decodedArray.map((item, idx) => {
+      const symbolKey = Object.keys(item)[0];
+      const data = item[symbolKey];
 
       return (
-        <div className="space-y-4 text-sm">
-          {parsed.map((item, index) => {
-            const symbolKey = Object.keys(item)[0];
-            const data = item[symbolKey];
-
-            return (
-              <div key={index} className="space-y-1">
-                <h3 className="text-xl font-bold text-indigo-600 dark:text-indigo-300">
-                  🔮 Symbol: {symbolKey}
-                </h3>
-                <p><strong>🗝️ Meaning:</strong> {data.meaning}</p>
-                <p><strong>📖 Reference:</strong> {data.reference}</p>
-                <p><strong>🧠 Interpretation:</strong> {data.interpretation}</p>
-                <p><strong>🚦 Status:</strong> {data.status}</p>
-                <p><strong>📌 Tags:</strong> {data.tags?.join(', ')}</p>
-                <p><strong>📝 Notes:</strong> {data.notes}</p>
-                {index < parsed.length - 1 && (
-                  <hr className="border-t border-gray-300 dark:border-gray-600 my-2" />
-                )}
-              </div>
-            );
-          })}
+        <div key={idx} className="space-y-2 text-sm border-b pb-2 mb-2">
+          <h3 className="text-xl font-bold text-indigo-600 dark:text-indigo-300">
+            🔮 Symbol: {symbolKey}
+          </h3>
+          <p><strong>🗝️ Meaning:</strong> {data.meaning}</p>
+          <p><strong>📖 Reference:</strong> {data.reference}</p>
+          <p><strong>🧠 Interpretation:</strong> {data.interpretation}</p>
+          <p><strong>🚦 Status:</strong> {data.status}</p>
+          <p><strong>📌 Tags:</strong> {data.tags?.join(', ')}</p>
+          <p><strong>📝 Notes:</strong> {data.notes}</p>
         </div>
       );
-    } catch (err) {
-      console.error('Parsing failed:', err);
-      return <pre className="text-red-500">{rawJSON}</pre>;
-    }
+    });
   };
 
   return (
@@ -117,7 +101,6 @@ export default function ProphecyDashboard() {
         {loading ? '🔄 Decoding...' : 'Decode'}
       </Button>
 
-      {/* Decoded Result Display */}
       <Card className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border p-4">
         <CardHeader>
           <h2 className="text-xl font-semibold text-indigo-600 dark:text-indigo-300">
@@ -126,14 +109,11 @@ export default function ProphecyDashboard() {
           <p className="text-sm text-gray-500">{timestamp || '🧠 Awaiting input...'}</p>
         </CardHeader>
         <CardContent>
-          {decodedOutput ? (
-            parsedOutput(decodedOutput)
-          ) : (
-            <p className="text-gray-600 dark:text-gray-300 text-sm">
-              🧠 Your decoded prophecy will appear here.
-            </p>
-          )}
-          {decodedOutput && (
+          {Array.isArray(decodedOutput)
+            ? parsedOutput(decodedOutput)
+            : <p className="text-gray-600 dark:text-gray-300 text-sm">{decodedOutput}</p>}
+
+          {Array.isArray(decodedOutput) && (
             <div className="flex justify-end mt-3">
               <Button variant="ghost" onClick={handleCopy}>
                 <CopyIcon className="mr-2 h-4 w-4" /> Copy
