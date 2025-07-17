@@ -2,7 +2,7 @@ import React, { useState, Suspense } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { BookOpen, Search, Menu } from 'lucide-react';
 
-import { useAuth } from './hooks/useAuth'; // make sure this is correct
+import { useAuth } from './hooks/useAuth';
 import DashboardCard from './common/DashboardCard';
 import BackButton from './common/BackButton';
 import Loading from './common/Loading';
@@ -50,7 +50,7 @@ export default function MainDashboard() {
             exit="exit"
             className="space-y-6"
           >
-            {/* More button */}
+            {/* Top-left More button */}
             {(user && !isGuest) && (
               <div className="flex justify-start">
                 <button
@@ -63,7 +63,7 @@ export default function MainDashboard() {
               </div>
             )}
 
-            {/* Dashboard Cards */}
+            {/* Main grid */}
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
               <DashboardCard
                 onClick={() => setActiveView('bible')}
@@ -71,15 +71,25 @@ export default function MainDashboard() {
                 Icon={BookOpen}
                 color="bg-blue-600 dark:bg-blue-500"
               />
-              <DashboardCard
-                onClick={() => setActiveView('prophecy')}
-                title="Prophecy"
-                Icon={Search}
-                color="bg-purple-600 dark:bg-purple-500"
-              />
+
+              {(user && !isGuest) ? (
+                <DashboardCard
+                  onClick={() => setActiveView('prophecy')}
+                  title="Prophecy"
+                  Icon={Search}
+                  color="bg-purple-600 dark:bg-purple-500"
+                />
+              ) : (
+                <DashboardCard
+                  onClick={() => setShowLogin(true)}
+                  title="Prophecy"
+                  Icon={Search}
+                  color="bg-purple-600 dark:bg-purple-500"
+                />
+              )}
             </div>
 
-            {/* Live Events from backend */}
+            {/* Events always visible */}
             <ProphecyEventsDashboard />
           </motion.div>
         )}
@@ -114,7 +124,7 @@ export default function MainDashboard() {
         )}
       </AnimatePresence>
 
-      {/* Auth */}
+      {/* Show login modal only when user clicks login */}
       {showLogin && <LoginModal onClose={() => setShowLogin(false)} />}
     </div>
   );
