@@ -10,7 +10,7 @@ export default function ProphecyDashboard() {
   const { user, isGuest } = useAuth();
   const { addToHistory } = useHistory();
   const [searchInput, setSearchInput] = useState('');
-  const [decodedOutput, setDecodedOutput] = useState('');
+  const [decodedData, setDecodedData] = useState([]);
   const [timestamp, setTimestamp] = useState('');
   const [loading, setLoading] = useState(false);
   const [guestDecodeCount, setGuestDecodeCount] = useState(0);
@@ -27,7 +27,7 @@ export default function ProphecyDashboard() {
     if (!trimmedInput) return;
 
     setLoading(true);
-    setDecodedOutput('');
+    setDecodedData([]);
     setTimestamp('');
 
     try {
@@ -37,34 +37,29 @@ export default function ProphecyDashboard() {
         body: JSON.stringify({ verse: trimmedInput })
       });
 
-      if (!response.ok) {
-        throw new Error(`Server returned ${response.status}`);
-      }
+      if (!response.ok) throw new Error(`Server returned ${response.status}`);
 
       const data = await response.json();
 
-      if (data?.decoded && typeof data.decoded === 'object') {
-        const formatted = JSON.stringify(data.decoded, null, 2);
-        setDecodedOutput(formatted);
+      if (Array.isArray(data.decoded)) {
+        const parsed = data.decoded.map((entry) => Object.values(entry)[0]);
+        setDecodedData(parsed);
         setTimestamp(new Date().toLocaleString());
 
         addToHistory({
           id: Date.now(),
           timestamp: new Date().toLocaleString(),
           input: trimmedInput,
-          output: formatted
+          output: JSON.stringify(data.decoded)
         });
 
-        if (isGuest) {
-          setGuestDecodeCount(prev => prev + 1);
-        }
-
+        if (isGuest) setGuestDecodeCount((prev) => prev + 1);
       } else {
-        setDecodedOutput('⚠️ No symbolic meaning detected.');
+        setDecodedData([{ meaning: '⚠️ No symbolic meaning detected.' }]);
       }
     } catch (error) {
       console.error('Decode error:', error);
-      setDecodedOutput('❌ Error connecting to decoder. Please try again.');
+      setDecodedData([{ meaning: '❌ Error connecting to decoder. Please try again.' }]);
     } finally {
       setLoading(false);
     }
@@ -77,12 +72,14 @@ export default function ProphecyDashboard() {
           ⚠ Guest mode: You can only decode 5 prophecies per day. Used: {guestDecodeCount}/5
         </p>
       )}
+
       <Input
         placeholder="Enter prophecy, verse, or question..."
         value={searchInput}
         onChange={(e) => setSearchInput(e.target.value)}
         className="text-base w-full"
       />
+
       <Button
         onClick={handleDecode}
         disabled={loading || !searchInput.trim() || (isGuest && guestDecodeCount >= 5)}
@@ -91,7 +88,6 @@ export default function ProphecyDashboard() {
         {loading ? '🔄 Decoding...' : 'Decode'}
       </Button>
 
-      {/* Display output */}
       <Card className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border p-4">
         <CardHeader>
           <h2 className="text-xl font-semibold text-indigo-600 dark:text-indigo-300">
@@ -100,19 +96,62 @@ export default function ProphecyDashboard() {
           <p className="text-sm text-gray-500">{timestamp || '🧠 Awaiting input...'}</p>
         </CardHeader>
         <CardContent>
-          {decodedOutput ? (
-            <pre className="text-xs whitespace-pre-wrap">{decodedOutput}</pre>
+          {decodedData.length ? (
+            <div className="space-y-4">
+              {decodedData.map((symbol, idx) => (
+                <div key={idx} className="border-b pb-3">
+                  <h3 className="text-lg font-bold text-purple-600 dark:text-purple-400">
+                    {symbol.symbol || 'Unknown Symbol'}
+                  </h3>
+                  <p className="text-sm text-gray-700 dark:text-gray-300">
+                    <strong>Meaning:</strong> {symbol.meaning}
+                  </p>
+                  {symbol.interpretation && (
+                    <p className="text-sm text-gray-700 dark:text-gray-300">
+                      <strong>Interpretation:</strong> {symbol.interpretation}
+                    </p>
+                  )}
+                  {symbol.status && (
+                    <p className="text-sm text-gray-700 dark:text-gray-300">
+                      <strong>Status:</strong> {symbol.status}
+                    </p>
+                  )}
+                  {symbol.fulfilled && symbol.fulfilled !== 'N/A' && (
+                    <p className="text-sm text-gray-700 dark:text-gray-300">
+                      <strong>Fulfilled:</strong> {symbol.fulfilled}
+                    </p>
+                  )}
+                  {symbol.notes && (
+                    <p className="text-sm italic text-gray-600 dark:text-gray-400">
+                      💡 {symbol.notes}
+                    </p>
+                  )}
+                  {symbol.reference && (
+                    <p className="text-sm text-blue-600 dark:text-blue-400">
+                      📖 {symbol.reference}
+                    </p>
+                  )}
+                  {symbol.tags?.length && (
+                    <p className="text-xs mt-1 text-gray-500">
+                      Tags: {symbol.tags.join(', ')}
+                    </p>
+                  )}
+                </div>
+              ))}
+
+              <div className="flex justify-end">
+                <Button
+                  variant="ghost"
+                  onClick={() => navigator.clipboard.writeText(JSON.stringify(decodedData, null, 2))}
+                >
+                  <CopyIcon className="mr-2 h-4 w-4" /> Copy All
+                </Button>
+              </div>
+            </div>
           ) : (
             <p className="text-gray-600 dark:text-gray-300 text-sm">
               🧠 Your decoded prophecy will appear here.
             </p>
-          )}
-          {decodedOutput && (
-            <div className="flex justify-end mt-3">
-              <Button variant="ghost" onClick={() => navigator.clipboard.writeText(decodedOutput)}>
-                <CopyIcon className="mr-2 h-4 w-4" /> Copy
-              </Button>
-            </div>
           )}
         </CardContent>
       </Card>
