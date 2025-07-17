@@ -1,124 +1,169 @@
 import React, { useState } from 'react';
 
-export default function LoginModal({ onClose }) {
+export default function LoginModal({ onClose, onLogin }) {
+  const [mode, setMode] = useState('register'); // 'register' | 'login' | 'guest'
   const [fullName, setFullName] = useState('');
   const [contact, setContact] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [isRegistering, setIsRegistering] = useState(true);
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+
+  const baseUrl = import.meta.env.VITE_API_URL;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    if (!contact || !password) {
+      return setError('❗ Contact and password are required.');
+    }
 
-    if (!fullName || !contact || !password || !confirmPassword) {
-      setError('All fields are required.');
-      return;
+    if (mode === 'register') {
+      if (!fullName || !confirmPassword) {
+        return setError('❗ All fields are required.');
+      }
+      if (password !== confirmPassword) {
+        return setError('❌ Passwords do not match.');
+      }
     }
-    if (password !== confirmPassword) {
-      setError('❌ Passwords do not match.');
-      return;
-    }
+
+    const endpoint = `${baseUrl}/${mode}`;
+    const payload = mode === 'register'
+      ? { full_name: fullName, contact, password }
+      : { contact, password };
 
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/register`, {
+      const res = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          full_name: fullName,
-          contact,
-          password
-        })
+        body: JSON.stringify(payload)
       });
 
       const data = await res.json();
       if (res.ok) {
-        setSuccessMessage('✅ Welcome to REVELACODE — Where Prophecy Meets Tech In Our Generation!');
+        setSuccessMessage(
+          mode === 'guest'
+            ? '✅ Guest login — you may decode up to 5 prophecy symbols.'
+            : '✅ Welcome to REVELACODE!'
+        );
+        onLogin?.({ user: data.user || null, guest: mode === 'guest' });
       } else {
-        setError(data?.message || '❌ Registration failed.');
+        setError(data?.message || '❌ Login/Registration failed.');
       }
     } catch (err) {
       console.error(err);
-      setError('❌ Could not connect.');
+      setError('❌ Could not connect to backend.');
     }
   };
 
+  const handleGuestLogin = () => {
+    // Simulate guest login
+    setSuccessMessage('✅ You are now logged in as Guest (5 symbol decode limit).');
+    onLogin?.({ guest: true });
+  };
+
   return (
-    <div className="fixed inset-0 bg-black/70 flex justify-center items-center z-50">
-      <div className="bg-white dark:bg-gray-900 rounded-xl p-6 w-full max-w-md shadow-md relative">
+    <div className="fixed inset-0 z-50 bg-black bg-opacity-70 flex items-center justify-center p-4">
+      <div className="bg-white dark:bg-gray-900 w-full max-w-md rounded-xl shadow-lg p-6 relative">
         <button
           onClick={onClose}
-          className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
+          className="absolute top-2 right-3 text-xl text-gray-500 hover:text-gray-800"
         >
           ✖
         </button>
 
         {!successMessage ? (
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <h2 className="text-xl font-bold">📝 Create a new account</h2>
+          <>
+            <h2 className="text-lg font-bold text-center mb-4">
+              {mode === 'register'
+                ? '📝 Create an Account'
+                : mode === 'login'
+                ? '🔐 Login to Your Account'
+                : '👤 Guest Login'}
+            </h2>
 
-            <input
-              type="text"
-              placeholder="Full Name"
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              className="w-full p-2 rounded border"
-            />
+            <form onSubmit={handleSubmit} className="space-y-3">
+              {mode === 'register' && (
+                <input
+                  type="text"
+                  placeholder="Full Name"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  className="w-full p-2 rounded border bg-white dark:bg-gray-800 dark:text-white"
+                />
+              )}
 
-            <input
-              type="text"
-              placeholder="Email or Phone"
-              value={contact}
-              onChange={(e) => setContact(e.target.value)}
-              className="w-full p-2 rounded border"
-            />
+              <input
+                type="text"
+                placeholder="Email or Phone"
+                value={contact}
+                onChange={(e) => setContact(e.target.value)}
+                className="w-full p-2 rounded border bg-white dark:bg-gray-800 dark:text-white"
+              />
 
-            <input
-              type="password"
-              placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full p-2 rounded border"
-            />
+              <input
+                type="password"
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full p-2 rounded border bg-white dark:bg-gray-800 dark:text-white"
+              />
 
-            <input
-              type="password"
-              placeholder="Confirm Password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              className="w-full p-2 rounded border"
-            />
+              {mode === 'register' && (
+                <input
+                  type="password"
+                  placeholder="Confirm Password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="w-full p-2 rounded border bg-white dark:bg-gray-800 dark:text-white"
+                />
+              )}
 
-            <button
-              type="submit"
-              className="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700"
-            >
-              Register
-            </button>
+              {error && <p className="text-red-500 text-sm">{error}</p>}
 
-            {error && <p className="text-red-500 text-sm">{error}</p>}
-
-            <p className="text-sm">
-              Already have an account?{' '}
               <button
-                type="button"
-                onClick={() => setIsRegistering(false)}
-                className="text-blue-600 underline"
+                type="submit"
+                className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
               >
-                Login
+                {mode === 'register' ? 'Register' : mode === 'login' ? 'Login' : 'Continue as Guest'}
               </button>
-            </p>
-          </form>
+            </form>
+
+            <div className="text-center mt-4 space-y-1 text-sm text-gray-600 dark:text-gray-400">
+              {mode !== 'login' && (
+                <button
+                  onClick={() => setMode('login')}
+                  className="text-blue-600 hover:underline"
+                >
+                  🔐 Already have an account? Login
+                </button>
+              )}
+              {mode !== 'register' && (
+                <button
+                  onClick={() => setMode('register')}
+                  className="text-blue-600 hover:underline"
+                >
+                  📝 New user? Register
+                </button>
+              )}
+              {mode !== 'guest' && (
+                <button
+                  onClick={() => handleGuestLogin()}
+                  className="text-blue-600 hover:underline block"
+                >
+                  👤 Continue as Guest
+                </button>
+              )}
+            </div>
+          </>
         ) : (
           <div className="text-center space-y-4">
-            <h2 className="text-green-600 font-bold">{successMessage}</h2>
+            <p className="text-green-600 font-bold">{successMessage}</p>
             <button
               onClick={onClose}
               className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
             >
-              Close
+              Proceed
             </button>
           </div>
         )}
