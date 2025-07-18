@@ -11,21 +11,34 @@ import {
   Mail
 } from 'lucide-react';
 
+const baseUrl = import.meta.env.VITE_API_URL;
+
 export default function AccountDashboard() {
   const platforms = [
-    { name: 'TikTok', icon: <MessageCircle className="mr-2" />, connected: false },
-    { name: 'ChatGPT', icon: <Bot className="mr-2" />, connected: true },
-    { name: 'Facebook', icon: <Facebook className="mr-2" />, connected: false },
-    { name: 'Instagram', icon: <Instagram className="mr-2" />, connected: false },
-    { name: 'WhatsApp', icon: <MessageCircle className="mr-2" />, connected: false },
-    { name: 'LinkedIn', icon: <Linkedin className="mr-2" />, connected: false },
-    { name: 'Twitter', icon: <Twitter className="mr-2" />, connected: false },
-    { name: 'Google', icon: <Mail className="mr-2" />, connected: false }
+    { name: 'Google', icon: <Mail className="mr-2" />, connected: false, oauth: true },
+    { name: 'Facebook', icon: <Facebook className="mr-2" />, connected: false, oauth: true },
+    { name: 'Instagram', icon: <Instagram className="mr-2" />, connected: false, oauth: false },
+    { name: 'TikTok', icon: <MessageCircle className="mr-2" />, connected: false, oauth: false },
+    { name: 'LinkedIn', icon: <Linkedin className="mr-2" />, connected: false, oauth: true },
+    { name: 'Twitter', icon: <Twitter className="mr-2" />, connected: false, oauth: true },
+    { name: 'WhatsApp', icon: <MessageCircle className="mr-2" />, connected: false, oauth: false },
+    { name: 'ChatGPT', icon: <Bot className="mr-2" />, connected: true, oauth: false }
   ];
 
   const handleConnect = (platformName) => {
-    // TODO: Integrate with OAuth or backend sync
-    alert(`You clicked connect for ${platformName}`);
+    const oauthRoutes = {
+      Google: `${baseUrl}/auth/google`,
+      Facebook: `${baseUrl}/auth/facebook`,
+      Twitter: `${baseUrl}/auth/twitter`,
+      LinkedIn: `${baseUrl}/auth/linkedin`
+    };
+
+    const redirectUrl = oauthRoutes[platformName];
+    if (redirectUrl) {
+      window.location.href = redirectUrl;
+    } else {
+      alert(`OAuth login not available for ${platformName}`);
+    }
   };
 
   return (
