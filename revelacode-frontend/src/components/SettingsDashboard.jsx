@@ -2,7 +2,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/Card';
 import { usePreferences } from '@/context/PreferencesContext';
 import { useHistory } from '@/context/HistoryContext';
-import { useTheme } from 'next-themes'; // optional: for theme toggle
+import { useTheme } from './hooks/useTheme'; // optional: for theme toggle
 
 export default function SettingsDashboard() {
   const { fontSize, setFontSize } = usePreferences();
