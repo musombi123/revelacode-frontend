@@ -114,7 +114,7 @@ export default function SettingsDashboard() {
             href="mailto:musombiwilliam769@gmail.com"
             className="text-blue-600 dark:text-blue-400 underline text-sm"
           >
-            musombiwilliam769@gmail.com
+            Help & Support link
           </a>
         </div>
       </CardContent>
