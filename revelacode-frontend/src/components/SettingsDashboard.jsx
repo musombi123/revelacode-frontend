@@ -2,35 +2,30 @@ import React from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/Card';
 import { usePreferences } from '@/context/PreferencesContext';
 import { useHistory } from '@/context/HistoryContext';
+import { useTheme } from 'next-themes'; // optional: for theme toggle
 
 export default function SettingsDashboard() {
   const { fontSize, setFontSize } = usePreferences();
   const { history } = useHistory();
+  const { theme, setTheme } = useTheme(); // optional
 
   return (
-    <Card className="shadow-md rounded-xl">
+    <Card className="shadow-md rounded-xl flex flex-col min-h-[80vh]">
       <CardHeader>
         <h2 className="text-xl font-semibold text-indigo-600 dark:text-indigo-300">
           ⚙️ Settings
         </h2>
       </CardHeader>
-      <CardContent className="space-y-6">
 
-        {/* i. Support */}
-        <section>
-          <h3 className="font-medium mb-1">📧 Support</h3>
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            Prefer email: <a href="mailto:musombiwilliam769@gmail.com" className="text-blue-600 dark:text-blue-400 underline">musombiwilliam769@gmail.com</a>
-          </p>
-        </section>
+      <CardContent className="flex-1 flex flex-col space-y-6">
 
-        {/* ii. Font size */}
+        {/* Font size */}
         <section>
           <h3 className="font-medium mb-1">🔠 Font size</h3>
           <select
             value={fontSize}
             onChange={(e) => setFontSize(e.target.value)}
-            className="p-2 rounded border bg-background text-foreground"
+            className="p-2 rounded border w-full bg-background text-foreground"
           >
             <option value="sm">Small</option>
             <option value="md">Medium</option>
@@ -38,39 +33,37 @@ export default function SettingsDashboard() {
           </select>
         </section>
 
-        {/* iii & iv */}
-        <section className="flex gap-2">
-          <button className="bg-gray-200 dark:bg-gray-700 px-3 py-1 rounded text-sm">📜 Privacy Policy</button>
-          <button className="bg-gray-200 dark:bg-gray-700 px-3 py-1 rounded text-sm">📄 Terms of Services</button>
-        </section>
-
-        {/* v. Languages */}
+        {/* Language */}
         <section>
           <h3 className="font-medium mb-1">🌐 Language</h3>
-          <select className="p-2 rounded border bg-background text-foreground">
+          <select className="p-2 rounded border w-full bg-background text-foreground">
             <option>English</option>
             <option>Swahili</option>
             <option>French</option>
-            {/* add more if needed */}
           </select>
         </section>
 
-        {/* vi. Theme */}
+        {/* Theme toggle */}
         <section>
           <h3 className="font-medium mb-1">🎨 Theme</h3>
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            Switch theme from light/dark in app header (or settings if you have custom switch)
-          </p>
+          <button
+            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+            className="px-4 py-2 rounded bg-gray-200 dark:bg-gray-700"
+          >
+            Toggle {theme === 'dark' ? '☀ Light' : '🌙 Dark'} Mode
+          </button>
         </section>
 
-        {/* vii. AI Assistant */}
+        {/* AI Assistant */}
         <section>
           <h3 className="font-medium mb-1">🤖 AI Assistant</h3>
-          <button className="bg-green-600 text-white px-3 py-1 rounded text-sm">Open Assistant</button>
+          <button className="bg-green-600 text-white px-4 py-2 rounded text-sm">
+            Open Assistant
+          </button>
         </section>
 
-        {/* viii. Decoded history */}
-        <section>
+        {/* Decoded History */}
+        <section className="flex-1 overflow-y-auto">
           <h3 className="font-medium mb-1">📜 Decoded history</h3>
           <div className="space-y-2 max-h-[200px] overflow-y-auto">
             {history.length ? (
@@ -78,7 +71,7 @@ export default function SettingsDashboard() {
                 let parsed = {};
                 try {
                   parsed = JSON.parse(item.output);
-                } catch (e) { parsed = {}; }
+                } catch (e) {}
 
                 return (
                   <div key={item.id} className="p-2 border rounded bg-gray-50 dark:bg-gray-700 text-sm">
@@ -97,6 +90,33 @@ export default function SettingsDashboard() {
             )}
           </div>
         </section>
+
+        {/* Policy buttons */}
+        <section className="flex gap-2">
+          <a
+            href="/privacy-policy"
+            className="bg-gray-200 dark:bg-gray-700 px-3 py-1 rounded text-sm text-center"
+          >
+            📜 Privacy Policy
+          </a>
+          <a
+            href="/terms-of-service"
+            className="bg-gray-200 dark:bg-gray-700 px-3 py-1 rounded text-sm text-center"
+          >
+            📄 Terms of Service
+          </a>
+        </section>
+
+        {/* Support (at the bottom) */}
+        <div className="mt-auto pt-4 border-t">
+          <h3 className="font-medium mb-1">📧 Support</h3>
+          <a
+            href="mailto:musombiwilliam769@gmail.com"
+            className="text-blue-600 dark:text-blue-400 underline text-sm"
+          >
+            musombiwilliam769@gmail.com
+          </a>
+        </div>
       </CardContent>
     </Card>
   );

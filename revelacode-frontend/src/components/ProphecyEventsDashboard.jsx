@@ -8,7 +8,6 @@ export default function ProphecyEventsDashboard() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    // 🔄 Use REST API instead of .json files
     fetch(`${baseUrl}/api/events`)
       .then(res => {
         if (!res.ok) throw new Error(`Failed to fetch: ${res.status}`);
@@ -31,32 +30,35 @@ export default function ProphecyEventsDashboard() {
 
   if (!events.length) {
     return (
-      <div className="text-gray-500 dark:text-gray-400 text-sm">
+      <div className="text-gray-500 dark:text-gray-400 text-sm italic">
         📡 No prophecy-related global events found today.
       </div>
     );
   }
 
   return (
-    <div className="space-y-2">
-      <h3 className="font-semibold text-lg text-indigo-600 dark:text-indigo-300">
-        🌍 Latest Global Events (Prophecy Tracking)
+    <div className="bg-white dark:bg-gray-900 p-6 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 w-full">
+      <h3 className="text-xl font-bold mb-4 text-indigo-700 dark:text-indigo-300 flex items-center gap-2">
+        🌍 Latest Global Events <span className="text-sm font-normal text-gray-500 dark:text-gray-400">(Prophecy Tracking)</span>
       </h3>
-      <ul className="space-y-1">
+
+      <ul className="space-y-4">
         {events.map((e, idx) => (
-          <li key={idx} className="border-b pb-2">
+          <li key={idx} className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
             <a
               href={e.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-blue-600 dark:text-blue-400 hover:underline"
+              className="block text-lg font-semibold text-blue-600 dark:text-blue-400 hover:underline"
             >
               {e.headline}
             </a>
-            <p className="text-xs text-gray-600 dark:text-gray-400">{e.description}</p>
-            <span className="text-xs text-gray-400">
-              🗓 {new Date(e.publishedAt).toLocaleString()} — {e.source}
-            </span>
+            <p className="text-sm text-gray-700 dark:text-gray-300 mt-1">
+              {e.description}
+            </p>
+            <div className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+              🗓 {new Date(e.publishedAt).toLocaleString()} • {e.source}
+            </div>
           </li>
         ))}
       </ul>
