@@ -5,11 +5,11 @@ import { motion } from 'framer-motion';
 export default function LoginModal({ onClose }) {
   const { login, register, guestMode } = useAuth();
 
-  const [mode, setMode] = useState('login');         // 'login' or 'register'
-  const [fullname, setFullname] = useState('');      // For register
-  const [contact, setContact] = useState('');        // Email or phone
+  const [mode, setMode] = useState('register');    // start directly with register
+  const [fullname, setFullname] = useState('');
+  const [contact, setContact] = useState('');
   const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState(''); // Only for register
+  const [confirmPassword, setConfirmPassword] = useState('');
 
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -23,16 +23,15 @@ export default function LoginModal({ onClose }) {
       if (mode === 'login') {
         if (!contact || !password) return setError('All fields are required');
         const res = await login(contact, password);
-        if (!res.success) return setError(res.message || 'Login failed');
+        if (!res.success) return setError(res.message || 'Something went wrong');
         onClose();
       } else {
-        // Registration flow
         if (!fullname || !contact || !password || !confirmPassword)
           return setError('All fields are required');
         if (password !== confirmPassword)
           return setError('Passwords do not match');
         const res = await register({ fullname, contact, password });
-        if (!res.success) return setError(res.message || 'Register failed');
+        if (!res.success) return setError(res.message || 'Something went wrong');
         onClose();
       }
     } catch (err) {
@@ -41,11 +40,6 @@ export default function LoginModal({ onClose }) {
     } finally {
       setLoading(false);
     }
-  }
-
-  function handleGuest() {
-    guestMode();
-    onClose();
   }
 
   return (
@@ -106,7 +100,7 @@ export default function LoginModal({ onClose }) {
         </button>
 
         <div className="flex justify-between items-center text-xs text-gray-500 dark:text-gray-400">
-          <button onClick={handleGuest} className="underline">
+          <button onClick={guestMode} className="underline">
             Continue as guest
           </button>
           <button
