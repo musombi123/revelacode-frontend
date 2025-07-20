@@ -1,104 +1,133 @@
 import React, { useState } from 'react';
+import { useAuth } from '@/context/AuthContext';
+import { motion } from 'framer-motion';
 
 export default function LoginModal({ onClose }) {
-  const [mode, setMode] = useState('register'); // register | login | guest
-  const [contact, setContact] = useState('');
-  const [password, setPassword] = useState('');
-  const [fullName, setFullName] = useState('');
-  const [error, setError] = useState('');
+  const { login, register, guestMode } = useAuth();
 
-  const handleSubmit = (e) => {
+  const [mode, setMode] = useState('login');         // 'login' or 'register'
+  const [fullname, setFullname] = useState('');      // For register
+  const [contact, setContact] = useState('');        // Email or phone
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState(''); // Only for register
+
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  async function handleSubmit(e) {
     e.preventDefault();
-    // Implement fetch logic here for register/login
-    console.log({ mode, contact, password, fullName });
-  };
+    setError('');
+    setLoading(true);
+
+    try {
+      if (mode === 'login') {
+        if (!contact || !password) return setError('All fields are required');
+        const res = await login(contact, password);
+        if (!res.success) return setError(res.message || 'Login failed');
+        onClose();
+      } else {
+        // Registration flow
+        if (!fullname || !contact || !password || !confirmPassword)
+          return setError('All fields are required');
+        if (password !== confirmPassword)
+          return setError('Passwords do not match');
+        const res = await register({ fullname, contact, password });
+        if (!res.success) return setError(res.message || 'Register failed');
+        onClose();
+      }
+    } catch (err) {
+      console.error(err);
+      setError('Something went wrong');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function handleGuest() {
+    guestMode();
+    onClose();
+  }
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center">
-      <div className="bg-white dark:bg-gray-900 rounded-xl p-6 w-full max-w-md shadow-md relative">
-        <button
-          onClick={onClose}
-          className="absolute top-2 right-3 text-gray-500 hover:text-gray-700"
-        >
-          ✖
-        </button>
-
-        <h2 className="text-xl font-bold mb-4">
-          {mode === 'register' && '📝 Create a new account'}
-          {mode === 'login' && '🔐 Login to your account'}
-          {mode === 'guest' && '👀 Continue as Guest'}
+    <motion.div
+      className="fixed inset-0 bg-black/50 backdrop-blur flex items-center justify-center z-50"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+    >
+      <div className="relative bg-white dark:bg-gray-800 rounded-xl shadow-xl p-6 max-w-md w-full space-y-4">
+        <h2 className="text-xl font-bold text-center text-indigo-600 dark:text-indigo-300">
+          {mode === 'login' ? 'Login to RevelaCode' : 'Create your RevelaCode Account'}
         </h2>
 
-        {mode === 'guest' ? (
-          <>
-            <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
-              You can view prophecies and events but only decode up to 5 symbols.
-            </p>
-            <button
-              onClick={() => {
-                // Save guest state to auth context if you use one
-                localStorage.setItem('guest', 'true');
-                onClose();
-              }}
-              className="w-full bg-yellow-500 text-white p-2 rounded hover:bg-yellow-600"
-            >
-              Continue as Guest
-            </button>
-          </>
-        ) : (
-          <form onSubmit={handleSubmit} className="space-y-3">
-            {mode === 'register' && (
-              <input
-                type="text"
-                placeholder="Full Name"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                className="w-full p-2 border rounded"
-              />
-            )}
-            <input
-              type="text"
-              placeholder="Email or Phone"
-              value={contact}
-              onChange={(e) => setContact(e.target.value)}
-              className="w-full p-2 border rounded"
-            />
-            <input
-              type="password"
-              placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full p-2 border rounded"
-            />
-            <button
-              type="submit"
-              className="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700"
-            >
-              {mode === 'register' ? 'Register' : 'Login'}
-            </button>
-            {error && <p className="text-red-500 text-sm">{error}</p>}
-          </form>
+        {mode === 'register' && (
+          <input
+            type="text"
+            placeholder="Full name"
+            value={fullname}
+            onChange={e => setFullname(e.target.value)}
+            className="w-full p-2 rounded border bg-background text-foreground"
+          />
         )}
 
-        {/* Switch Mode */}
-        <div className="mt-4 text-sm text-center space-x-2">
-          {mode !== 'login' && (
-            <button onClick={() => setMode('login')} className="text-blue-600 underline">
-              Login
-            </button>
-          )}
-          {mode !== 'register' && (
-            <button onClick={() => setMode('register')} className="text-blue-600 underline">
-              Register
-            </button>
-          )}
-          {mode !== 'guest' && (
-            <button onClick={() => setMode('guest')} className="text-blue-600 underline">
-              Guest
-            </button>
-          )}
+        <input
+          type="text"
+          placeholder="Email or Phone"
+          value={contact}
+          onChange={e => setContact(e.target.value)}
+          className="w-full p-2 rounded border bg-background text-foreground"
+        />
+
+        <input
+          type="password"
+          placeholder="Password"
+          value={password}
+          onChange={e => setPassword(e.target.value)}
+          className="w-full p-2 rounded border bg-background text-foreground"
+        />
+
+        {mode === 'register' && (
+          <input
+            type="password"
+            placeholder="Confirm Password"
+            value={confirmPassword}
+            onChange={e => setConfirmPassword(e.target.value)}
+            className="w-full p-2 rounded border bg-background text-foreground"
+          />
+        )}
+
+        {error && <p className="text-red-500 text-sm">{error}</p>}
+
+        <button
+          onClick={handleSubmit}
+          disabled={loading}
+          className="w-full bg-indigo-600 text-white py-2 rounded hover:bg-indigo-700 transition"
+        >
+          {loading ? 'Please wait...' : mode === 'login' ? 'Login' : 'Register'}
+        </button>
+
+        <div className="flex justify-between items-center text-xs text-gray-500 dark:text-gray-400">
+          <button onClick={handleGuest} className="underline">
+            Continue as guest
+          </button>
+          <button
+            onClick={() => setMode(mode === 'login' ? 'register' : 'login')}
+            className="underline"
+          >
+            {mode === 'login' ? 'Create an account' : 'Have an account? Login'}
+          </button>
         </div>
+
+        <p className="text-center text-xs text-gray-400">
+          Welcome to RevelaCode: Where prophecy meets tech in our generation.
+        </p>
+
+        <button
+          onClick={onClose}
+          className="absolute top-2 right-2 text-gray-400 hover:text-gray-600"
+        >
+          ✕
+        </button>
       </div>
-    </div>
+    </motion.div>
   );
 }

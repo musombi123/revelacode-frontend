@@ -1,15 +1,15 @@
-import React, { useState, Suspense } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { BookOpen, Search, Menu } from 'lucide-react';
 
-import { useAuth } from './hooks/useAuth';
+import { useAuth } from '@/context/AuthContext';
 import DashboardCard from './common/DashboardCard';
 import BackButton from './common/BackButton';
 import Loading from './common/Loading';
 import LoginModal from './LoginModal';
 import ProphecyEventsDashboard from './ProphecyEventsDashboard';
 
-// Lazy loaded dashboards
+// Lazy dashboards
 const BibleDashboard = React.lazy(() => import('./BibleDashboard'));
 const ProphecyDashboard = React.lazy(() => import('./ProphecyDashboard'));
 const SettingsDashboard = React.lazy(() => import('./SettingsDashboard'));
@@ -22,12 +22,18 @@ export default function MainDashboard() {
   const [showLogin, setShowLogin] = useState(false);
   const { user, isGuest, loading } = useAuth();
 
+  useEffect(() => {
+    if (!user && !isGuest) {
+      setShowLogin(true);
+    }
+  }, [user, isGuest]);
+
   const goBack = () => setActiveView('main');
 
   const fadeVariant = {
     hidden: { opacity: 0, y: 10 },
     visible: { opacity: 1, y: 0 },
-    exit: { opacity: 0, y: -10 },
+    exit: { opacity: 0, y: -10 }
   };
 
   if (loading) {
@@ -50,7 +56,7 @@ export default function MainDashboard() {
             exit="exit"
             className="space-y-6"
           >
-            {/* Top-left More button */}
+            {/* Top-left More button, only for logged-in user */}
             {(user && !isGuest) && (
               <div className="flex justify-start">
                 <button
@@ -63,7 +69,7 @@ export default function MainDashboard() {
               </div>
             )}
 
-            {/* Main grid */}
+            {/* Dashboard Cards */}
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
               <DashboardCard
                 onClick={() => setActiveView('bible')}
@@ -71,22 +77,12 @@ export default function MainDashboard() {
                 Icon={BookOpen}
                 color="bg-blue-600 dark:bg-blue-500"
               />
-
-              {(user && !isGuest) ? (
-                <DashboardCard
-                  onClick={() => setActiveView('prophecy')}
-                  title="Prophecy"
-                  Icon={Search}
-                  color="bg-purple-600 dark:bg-purple-500"
-                />
-              ) : (
-                <DashboardCard
-                  onClick={() => setShowLogin(true)}
-                  title="Prophecy"
-                  Icon={Search}
-                  color="bg-purple-600 dark:bg-purple-500"
-                />
-              )}
+              <DashboardCard
+                onClick={() => setActiveView('prophecy')}
+                title="Prophecy"
+                Icon={Search}
+                color="bg-purple-600 dark:bg-purple-500"
+              />
             </div>
 
             {/* Events always visible */}
@@ -94,7 +90,7 @@ export default function MainDashboard() {
           </motion.div>
         )}
 
-        {/* Sub Dashboards */}
+        {/* Sub dashboards */}
         {['bible', 'prophecy', 'settings', 'referential', 'accounts', 'userAccount'].includes(activeView) && (
           <motion.div
             key={activeView}
@@ -124,7 +120,7 @@ export default function MainDashboard() {
         )}
       </AnimatePresence>
 
-      {/* Show login modal only when user clicks login */}
+      {/* Login Modal */}
       {showLogin && <LoginModal onClose={() => setShowLogin(false)} />}
     </div>
   );
