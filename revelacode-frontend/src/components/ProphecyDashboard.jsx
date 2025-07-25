@@ -42,27 +42,55 @@ export default function ProphecyDashboard() {
       const data = await response.json();
 
       if (Array.isArray(data.decoded)) {
-        const parsed = data.decoded.map((entry) => Object.values(entry)[0]);
-        setDecodedData(parsed);
+        // Use raw decoded to keep full object keys for history
+        setDecodedData(data.decoded);
         setTimestamp(new Date().toLocaleString());
 
         addToHistory({
           id: Date.now(),
           timestamp: new Date().toLocaleString(),
           input: trimmedInput,
-          output: JSON.stringify(data.decoded)
+          output: JSON.stringify(data.decoded, null, 2)
         });
 
         if (isGuest) setGuestDecodeCount((prev) => prev + 1);
       } else {
-        setDecodedData([{ meaning: '⚠️ No symbolic meaning detected.' }]);
+        setDecodedData([{ message: '⚠️ No symbolic meaning detected.' }]);
       }
     } catch (error) {
       console.error('Decode error:', error);
-      setDecodedData([{ meaning: '❌ Error connecting to decoder. Please try again.' }]);
+      setDecodedData([{ message: '❌ Error connecting to decoder. Please try again.' }]);
     } finally {
       setLoading(false);
     }
+  };
+
+  const renderDecoded = () => {
+    if (!decodedData.length) return (
+      <p className="text-gray-600 dark:text-gray-300 text-sm">
+        🧠 Your decoded prophecy will appear here.
+      </p>
+    );
+
+    return decodedData.map((entry, idx) => {
+      const symbolKey = Object.keys(entry)[0];
+      const data = entry[symbolKey] || {};
+
+      return (
+        <div key={idx} className="border-b pb-3 space-y-1">
+          <h3 className="text-lg font-bold text-purple-600 dark:text-purple-400">
+            🔮 {symbolKey || data.symbol || 'Unknown Symbol'}
+          </h3>
+          {data.meaning && <p><strong>🗝 Meaning:</strong> {data.meaning}</p>}
+          {data.interpretation && <p><strong>🧠 Interpretation:</strong> {data.interpretation}</p>}
+          {data.status && <p><strong>🚦 Status:</strong> {data.status}</p>}
+          {data.fulfilled && <p><strong>✅ Fulfilled:</strong> {data.fulfilled}</p>}
+          {data.reference && <p className="text-blue-600 dark:text-blue-400">📖 {data.reference}</p>}
+          {data.notes && <p className="italic text-gray-600 dark:text-gray-400">💡 {data.notes}</p>}
+          {data.tags?.length > 0 && <p className="text-xs text-gray-500">Tags: {data.tags.join(', ')}</p>}
+        </div>
+      );
+    });
   };
 
   return (
@@ -95,63 +123,18 @@ export default function ProphecyDashboard() {
           </h2>
           <p className="text-sm text-gray-500">{timestamp || '🧠 Awaiting input...'}</p>
         </CardHeader>
-        <CardContent>
-          {decodedData.length ? (
-            <div className="space-y-4">
-              {decodedData.map((symbol, idx) => (
-                <div key={idx} className="border-b pb-3">
-                  <h3 className="text-lg font-bold text-purple-600 dark:text-purple-400">
-                    {symbol.symbol || 'Unknown Symbol'}
-                  </h3>
-                  <p className="text-sm text-gray-700 dark:text-gray-300">
-                    <strong>Meaning:</strong> {symbol.meaning}
-                  </p>
-                  {symbol.interpretation && (
-                    <p className="text-sm text-gray-700 dark:text-gray-300">
-                      <strong>Interpretation:</strong> {symbol.interpretation}
-                    </p>
-                  )}
-                  {symbol.status && (
-                    <p className="text-sm text-gray-700 dark:text-gray-300">
-                      <strong>Status:</strong> {symbol.status}
-                    </p>
-                  )}
-                  {symbol.fulfilled && symbol.fulfilled !== 'N/A' && (
-                    <p className="text-sm text-gray-700 dark:text-gray-300">
-                      <strong>Fulfilled:</strong> {symbol.fulfilled}
-                    </p>
-                  )}
-                  {symbol.notes && (
-                    <p className="text-sm italic text-gray-600 dark:text-gray-400">
-                      💡 {symbol.notes}
-                    </p>
-                  )}
-                  {symbol.reference && (
-                    <p className="text-sm text-blue-600 dark:text-blue-400">
-                      📖 {symbol.reference}
-                    </p>
-                  )}
-                  {symbol.tags?.length && (
-                    <p className="text-xs mt-1 text-gray-500">
-                      Tags: {symbol.tags.join(', ')}
-                    </p>
-                  )}
-                </div>
-              ))}
+        <CardContent className="space-y-3">
+          {renderDecoded()}
 
-              <div className="flex justify-end">
-                <Button
-                  variant="ghost"
-                  onClick={() => navigator.clipboard.writeText(JSON.stringify(decodedData, null, 2))}
-                >
-                  <CopyIcon className="mr-2 h-4 w-4" /> Copy All
-                </Button>
-              </div>
+          {decodedData.length > 0 && (
+            <div className="flex justify-end">
+              <Button
+                variant="ghost"
+                onClick={() => navigator.clipboard.writeText(JSON.stringify(decodedData, null, 2))}
+              >
+                <CopyIcon className="mr-2 h-4 w-4" /> Copy All
+              </Button>
             </div>
-          ) : (
-            <p className="text-gray-600 dark:text-gray-300 text-sm">
-              🧠 Your decoded prophecy will appear here.
-            </p>
           )}
         </CardContent>
       </Card>

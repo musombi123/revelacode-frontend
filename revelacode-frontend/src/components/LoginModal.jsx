@@ -1,127 +1,141 @@
 import React, { useState } from 'react';
-import { useAuth } from '@/context/AuthContext';
-import { motion } from 'framer-motion';
 
-export default function LoginModal({ onClose }) {
-  const { login, register, guestMode } = useAuth();
-
-  const [mode, setMode] = useState('register');    // start directly with register
-  const [fullname, setFullname] = useState('');
+export default function LoginModal({ onClose, onGuest }) {
+  const [isLogin, setIsLogin] = useState(false);
+  const [fullName, setFullName] = useState('');
   const [contact, setContact] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-
+  const [message, setMessage] = useState('');
   const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
 
-  async function handleSubmit(e) {
+  const baseUrl = import.meta.env.VITE_API_URL;
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setMessage('');
     setError('');
-    setLoading(true);
+
+    if (!contact || !password || (!isLogin && (!fullName || !confirmPassword))) {
+      setError('⚠ All fields are required.');
+      return;
+    }
+    if (!isLogin && password !== confirmPassword) {
+      setError('❌ Passwords do not match.');
+      return;
+    }
+
+    const endpoint = isLogin ? '/api/login' : '/api/register';
+    const payload = isLogin
+      ? { username: contact, password }
+      : { username: contact, password };
 
     try {
-      if (mode === 'login') {
-        if (!contact || !password) return setError('All fields are required');
-        const res = await login(contact, password);
-        if (!res.success) return setError(res.message || 'Something went wrong');
-        onClose();
+      const res = await fetch(`${baseUrl}${endpoint}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        setMessage(`✅ ${isLogin ? 'Login' : 'Registration'} successful!`);
+        setTimeout(onClose, 1500); // Auto close
       } else {
-        if (!fullname || !contact || !password || !confirmPassword)
-          return setError('All fields are required');
-        if (password !== confirmPassword)
-          return setError('Passwords do not match');
-        const res = await register({ fullname, contact, password });
-        if (!res.success) return setError(res.message || 'Something went wrong');
-        onClose();
+        setError(data.message || '❌ Failed to login/register.');
       }
     } catch (err) {
       console.error(err);
-      setError('Something went wrong');
-    } finally {
-      setLoading(false);
+      setError('❌ Server error. Please try again.');
     }
-  }
+  };
 
   return (
-    <motion.div
-      className="fixed inset-0 bg-black/50 backdrop-blur flex items-center justify-center z-50"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-    >
-      <div className="relative bg-white dark:bg-gray-800 rounded-xl shadow-xl p-6 max-w-md w-full space-y-4">
-        <h2 className="text-xl font-bold text-center text-indigo-600 dark:text-indigo-300">
-          {mode === 'login' ? 'Login to RevelaCode' : 'Create your RevelaCode Account'}
-        </h2>
-
-        {mode === 'register' && (
-          <input
-            type="text"
-            placeholder="Full name"
-            value={fullname}
-            onChange={e => setFullname(e.target.value)}
-            className="w-full p-2 rounded border bg-background text-foreground"
-          />
-        )}
-
-        <input
-          type="text"
-          placeholder="Email or Phone"
-          value={contact}
-          onChange={e => setContact(e.target.value)}
-          className="w-full p-2 rounded border bg-background text-foreground"
-        />
-
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={e => setPassword(e.target.value)}
-          className="w-full p-2 rounded border bg-background text-foreground"
-        />
-
-        {mode === 'register' && (
-          <input
-            type="password"
-            placeholder="Confirm Password"
-            value={confirmPassword}
-            onChange={e => setConfirmPassword(e.target.value)}
-            className="w-full p-2 rounded border bg-background text-foreground"
-          />
-        )}
-
-        {error && <p className="text-red-500 text-sm">{error}</p>}
-
-        <button
-          onClick={handleSubmit}
-          disabled={loading}
-          className="w-full bg-indigo-600 text-white py-2 rounded hover:bg-indigo-700 transition"
-        >
-          {loading ? 'Please wait...' : mode === 'login' ? 'Login' : 'Register'}
-        </button>
-
-        <div className="flex justify-between items-center text-xs text-gray-500 dark:text-gray-400">
-          <button onClick={guestMode} className="underline">
-            Continue as guest
-          </button>
-          <button
-            onClick={() => setMode(mode === 'login' ? 'register' : 'login')}
-            className="underline"
-          >
-            {mode === 'login' ? 'Create an account' : 'Have an account? Login'}
-          </button>
-        </div>
-
-        <p className="text-center text-xs text-gray-400">
-          Welcome to RevelaCode: Where prophecy meets tech in our generation.
-        </p>
-
+    <div className="fixed inset-0 bg-black/70 z-50 flex justify-center items-center">
+      <div className="bg-white dark:bg-gray-900 rounded-xl shadow-lg p-6 w-full max-w-md relative">
         <button
           onClick={onClose}
-          className="absolute top-2 right-2 text-gray-400 hover:text-gray-600"
+          className="absolute top-2 right-2 text-gray-500 hover:text-gray-800"
         >
-          ✕
+          ✖
         </button>
+
+        <h2 className="text-xl font-bold mb-4">
+          {isLogin ? '🔐 Login to RevelaCode' : '📝 Register to RevelaCode'}
+        </h2>
+
+        <form onSubmit={handleSubmit} className="space-y-3">
+          {!isLogin && (
+            <input
+              type="text"
+              placeholder="Full Name"
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              className="w-full p-2 border rounded"
+            />
+          )}
+
+          <input
+            type="text"
+            placeholder="Email or Phone"
+            value={contact}
+            onChange={(e) => setContact(e.target.value)}
+            className="w-full p-2 border rounded"
+          />
+
+          <input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="w-full p-2 border rounded"
+          />
+
+          {!isLogin && (
+            <input
+              type="password"
+              placeholder="Confirm Password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              className="w-full p-2 border rounded"
+            />
+          )}
+
+          <button
+            type="submit"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded"
+          >
+            {isLogin ? 'Login' : 'Register'}
+          </button>
+
+          {message && <p className="text-green-600 text-sm">{message}</p>}
+          {error && <p className="text-red-600 text-sm">{error}</p>}
+
+          <div className="text-center text-sm mt-2">
+            {isLogin ? (
+              <>
+                Don't have an account?{' '}
+                <button onClick={() => setIsLogin(false)} className="text-blue-600 underline">Register</button>
+              </>
+            ) : (
+              <>
+                Already have an account?{' '}
+                <button onClick={() => setIsLogin(true)} className="text-blue-600 underline">Login</button>
+              </>
+            )}
+          </div>
+
+          <div className="text-center mt-4">
+            <button
+              type="button"
+              onClick={onGuest}
+              className="text-gray-700 dark:text-gray-300 text-sm underline"
+            >
+              👀 Continue as Guest
+            </button>
+          </div>
+        </form>
       </div>
-    </motion.div>
+    </div>
   );
 }
