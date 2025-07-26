@@ -9,15 +9,22 @@ import { useHistory } from '@/context/HistoryContext';
 export default function ProphecyDashboard() {
   const { user, isGuest } = useAuth();
   const { addToHistory } = useHistory();
+
   const [searchInput, setSearchInput] = useState('');
   const [decodedData, setDecodedData] = useState([]);
   const [timestamp, setTimestamp] = useState('');
   const [loading, setLoading] = useState(false);
   const [guestDecodeCount, setGuestDecodeCount] = useState(0);
+  const [copied, setCopied] = useState(false);
 
   const baseUrl = import.meta.env.VITE_API_URL;
 
   const handleDecode = async () => {
+    if (!baseUrl) {
+      alert("🚫 API URL not set. Check your VITE_API_URL in .env.");
+      return;
+    }
+
     if (isGuest && guestDecodeCount >= 5) {
       alert('⚠ Guest mode limit reached: Only 5 decodes per day.');
       return;
@@ -29,6 +36,7 @@ export default function ProphecyDashboard() {
     setLoading(true);
     setDecodedData([]);
     setTimestamp('');
+    setCopied(false);
 
     try {
       const response = await fetch(`${baseUrl}/decode`, {
@@ -37,40 +45,51 @@ export default function ProphecyDashboard() {
         body: JSON.stringify({ verse: trimmedInput })
       });
 
-      if (!response.ok) throw new Error(`Server returned ${response.status}`);
+      if (!response.ok) {
+        const text = await response.text();
+        throw new Error(`❌ Server error ${response.status}: ${text}`);
+      }
 
       const data = await response.json();
 
-      if (Array.isArray(data.decoded)) {
-        // Use raw decoded to keep full object keys for history
+      if (Array.isArray(data.decoded) && data.decoded.length > 0) {
         setDecodedData(data.decoded);
-        setTimestamp(new Date().toLocaleString());
+        const now = new Date().toLocaleString();
+        setTimestamp(now);
 
-        addToHistory({
+        addToHistory?.({
           id: Date.now(),
-          timestamp: new Date().toLocaleString(),
+          timestamp: now,
           input: trimmedInput,
           output: JSON.stringify(data.decoded, null, 2)
         });
 
-        if (isGuest) setGuestDecodeCount((prev) => prev + 1);
+        if (isGuest) setGuestDecodeCount(prev => prev + 1);
       } else {
-        setDecodedData([{ message: '⚠️ No symbolic meaning detected.' }]);
+        setDecodedData([{ message: '⚠️ No symbolic meaning detected in this prophecy.' }]);
       }
     } catch (error) {
-      console.error('Decode error:', error);
-      setDecodedData([{ message: '❌ Error connecting to decoder. Please try again.' }]);
+      console.error('❌ Decode failed:', error.message || error);
+      setDecodedData([{ message: '❌ Error decoding. Check server or try again later.' }]);
     } finally {
       setLoading(false);
     }
   };
 
+  const handleCopy = () => {
+    navigator.clipboard.writeText(JSON.stringify(decodedData, null, 2));
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
   const renderDecoded = () => {
-    if (!decodedData.length) return (
-      <p className="text-gray-600 dark:text-gray-300 text-sm">
-        🧠 Your decoded prophecy will appear here.
-      </p>
-    );
+    if (!decodedData.length) {
+      return (
+        <p className="text-gray-600 dark:text-gray-300 text-sm">
+          🧠 Your decoded prophecy will appear here.
+        </p>
+      );
+    }
 
     return decodedData.map((entry, idx) => {
       const symbolKey = Object.keys(entry)[0];
@@ -88,6 +107,7 @@ export default function ProphecyDashboard() {
           {data.reference && <p className="text-blue-600 dark:text-blue-400">📖 {data.reference}</p>}
           {data.notes && <p className="italic text-gray-600 dark:text-gray-400">💡 {data.notes}</p>}
           {data.tags?.length > 0 && <p className="text-xs text-gray-500">Tags: {data.tags.join(', ')}</p>}
+          {!data.meaning && entry.message && <p className="text-red-500">{entry.message}</p>}
         </div>
       );
     });
@@ -97,12 +117,12 @@ export default function ProphecyDashboard() {
     <div className="space-y-4">
       {isGuest && (
         <p className="text-xs text-yellow-600 dark:text-yellow-400">
-          ⚠ Guest mode: You can only decode 5 prophecies per day. Used: {guestDecodeCount}/5
+          ⚠ Guest mode: You can decode 5 prophecies per day. Used: {guestDecodeCount}/5
         </p>
       )}
 
       <Input
-        placeholder="Enter prophecy, verse, or question..."
+        placeholder="Enter prophecy, verse, or symbolic message..."
         value={searchInput}
         onChange={(e) => setSearchInput(e.target.value)}
         className="text-base w-full"
@@ -123,16 +143,15 @@ export default function ProphecyDashboard() {
           </h2>
           <p className="text-sm text-gray-500">{timestamp || '🧠 Awaiting input...'}</p>
         </CardHeader>
+
         <CardContent className="space-y-3">
           {renderDecoded()}
 
           {decodedData.length > 0 && (
             <div className="flex justify-end">
-              <Button
-                variant="ghost"
-                onClick={() => navigator.clipboard.writeText(JSON.stringify(decodedData, null, 2))}
-              >
-                <CopyIcon className="mr-2 h-4 w-4" /> Copy All
+              <Button variant="ghost" onClick={handleCopy}>
+                <CopyIcon className="mr-2 h-4 w-4" />
+                {copied ? 'Copied!' : 'Copy All'}
               </Button>
             </div>
           )}

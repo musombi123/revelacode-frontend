@@ -1,15 +1,16 @@
 import React, { useState, useEffect, Suspense } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { BookOpen, Search, Menu } from 'lucide-react';
+import { BookOpen, Search, Menu, Bell, Sun, Moon, UserCircle } from 'lucide-react';
 
 import { useAuth } from '@/context/AuthContext';
+import { useTheme } from '@/hooks/useTheme';
 import DashboardCard from './common/DashboardCard';
 import BackButton from './common/BackButton';
 import Loading from './common/Loading';
 import LoginModal from './LoginModal';
 import ProphecyEventsDashboard from './ProphecyEventsDashboard';
 
-// Lazy dashboards
+// Lazy-loaded dashboards
 const BibleDashboard = React.lazy(() => import('./BibleDashboard'));
 const ProphecyDashboard = React.lazy(() => import('./ProphecyDashboard'));
 const SettingsDashboard = React.lazy(() => import('./SettingsDashboard'));
@@ -21,11 +22,10 @@ export default function MainDashboard() {
   const [activeView, setActiveView] = useState('main');
   const [showLogin, setShowLogin] = useState(false);
   const { user, isGuest, loading } = useAuth();
+  const { theme, setTheme } = useTheme();
 
   useEffect(() => {
-    if (!user && !isGuest) {
-      setShowLogin(true);
-    }
+    if (!user && !isGuest) setShowLogin(true);
   }, [user, isGuest]);
 
   const goBack = () => setActiveView('main');
@@ -45,7 +45,46 @@ export default function MainDashboard() {
   }
 
   return (
-    <div className="p-6 bg-gray-100 dark:bg-gray-900 min-h-screen transition-colors duration-300">
+    <div className="relative p-4 sm:p-6 bg-gray-100 dark:bg-gray-900 min-h-screen transition-colors duration-300">
+
+      {/* === Top-right Toolbar === */}
+      {(user || isGuest) && (
+        <div className="absolute top-4 right-4 flex items-center gap-3 z-10">
+          {/* Notifications (placeholder) */}
+          <button className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full" title="Notifications">
+            <Bell className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+          </button>
+
+          {/* Theme Toggle */}
+          <button
+            className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full"
+            title="Toggle Theme"
+            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+          >
+            {theme === 'dark' ? (
+              <Sun className="w-5 h-5 text-yellow-400" />
+            ) : (
+              <Moon className="w-5 h-5 text-gray-800" />
+            )}
+          </button>
+
+          {/* User Profile / Avatar */}
+          <div className="w-8 h-8 flex items-center justify-center rounded-full bg-indigo-600 text-white text-sm font-bold">
+            {user?.name?.[0]?.toUpperCase() || <UserCircle className="w-6 h-6" />}
+          </div>
+
+          {/* Menu Button for More */}
+          <button
+            onClick={() => setActiveView('userAccount')}
+            className="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full"
+            title="More Options"
+          >
+            <Menu className="w-5 h-5 text-gray-700 dark:text-gray-200" />
+          </button>
+        </div>
+      )}
+
+      {/* === Main View or Sub Views === */}
       <AnimatePresence mode="wait">
         {activeView === 'main' && (
           <motion.div
@@ -56,21 +95,8 @@ export default function MainDashboard() {
             exit="exit"
             className="space-y-6"
           >
-            {/* Top-left More button, only for logged-in user */}
-            {(user && !isGuest) && (
-              <div className="flex justify-start">
-                <button
-                  onClick={() => setActiveView('userAccount')}
-                  className="flex items-center gap-1 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition"
-                >
-                  <Menu className="w-5 h-5" />
-                  <span className="text-sm font-medium">More</span>
-                </button>
-              </div>
-            )}
-
             {/* Dashboard Cards */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mt-6">
               <DashboardCard
                 onClick={() => setActiveView('bible')}
                 title="Bible"
@@ -85,12 +111,12 @@ export default function MainDashboard() {
               />
             </div>
 
-            {/* Events always visible */}
+            {/* Always visible events feed */}
             <ProphecyEventsDashboard />
           </motion.div>
         )}
 
-        {/* Sub dashboards */}
+        {/* Subdashboards */}
         {['bible', 'prophecy', 'settings', 'referential', 'accounts', 'userAccount'].includes(activeView) && (
           <motion.div
             key={activeView}
@@ -120,7 +146,7 @@ export default function MainDashboard() {
         )}
       </AnimatePresence>
 
-      {/* Login Modal */}
+      {/* Login modal */}
       {showLogin && <LoginModal onClose={() => setShowLogin(false)} />}
     </div>
   );
