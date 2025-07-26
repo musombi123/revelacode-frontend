@@ -60,14 +60,22 @@ export default function StartModal({ onClose, onGuest }) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
-      <div className="bg-white dark:bg-gray-900 rounded-xl shadow-xl w-full max-w-md p-6 relative">
-        <button onClick={onClose} className="absolute top-2 right-3 text-gray-500 text-xl hover:text-red-500">✖</button>
+    <div className="fixed inset-0 z-50 bg-black/70 flex justify-center items-center px-4">
+      <div className="bg-white dark:bg-gray-900 rounded-xl shadow-xl w-full max-w-md p-6 relative transition-all duration-200">
+        {/* Close */}
+        <button
+          onClick={onClose}
+          className="absolute top-2 right-3 text-gray-400 hover:text-red-500 text-xl"
+        >
+          ✖
+        </button>
 
-        <h2 className="text-xl font-bold mb-4 text-center text-indigo-600 dark:text-indigo-300">
-          {isLogin ? '🔐 Login to RevelaCode' : '📝 Create an Account'}
+        {/* Title */}
+        <h2 className="text-xl font-semibold text-center mb-4 text-indigo-600 dark:text-indigo-300">
+          {isLogin ? '🔐 Login to RevelaCode' : '📝 Create Your Account'}
         </h2>
 
+        {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-3">
           {!isLogin && (
             <input
@@ -75,7 +83,7 @@ export default function StartModal({ onClose, onGuest }) {
               placeholder="Full Name"
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
-              className="w-full p-2 border rounded"
+              className="w-full p-2 rounded border bg-gray-50 dark:bg-gray-800 dark:border-gray-700"
             />
           )}
 
@@ -84,7 +92,7 @@ export default function StartModal({ onClose, onGuest }) {
             placeholder="Email or Phone"
             value={contact}
             onChange={(e) => setContact(e.target.value)}
-            className="w-full p-2 border rounded"
+            className="w-full p-2 rounded border bg-gray-50 dark:bg-gray-800 dark:border-gray-700"
           />
 
           <input
@@ -92,7 +100,7 @@ export default function StartModal({ onClose, onGuest }) {
             placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full p-2 border rounded"
+            className="w-full p-2 rounded border bg-gray-50 dark:bg-gray-800 dark:border-gray-700"
           />
 
           {!isLogin && (
@@ -101,14 +109,14 @@ export default function StartModal({ onClose, onGuest }) {
               placeholder="Confirm Password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              className="w-full p-2 border rounded"
+              className="w-full p-2 rounded border bg-gray-50 dark:bg-gray-800 dark:border-gray-700"
             />
           )}
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded"
+            className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white rounded font-medium"
           >
             {loading ? '🔄 Processing...' : isLogin ? 'Login' : 'Register'}
           </button>
@@ -117,37 +125,47 @@ export default function StartModal({ onClose, onGuest }) {
           {error && <p className="text-red-600 text-sm">{error}</p>}
         </form>
 
-        <div className="text-center text-sm mt-3 text-gray-600 dark:text-gray-400">
+        {/* Switch mode */}
+        <div className="text-center text-sm mt-4 text-gray-600 dark:text-gray-400">
           {isLogin ? (
             <>
               Don't have an account?{' '}
-              <button onClick={() => setIsLogin(false)} className="text-blue-600 underline">Register</button>
+              <button onClick={() => setIsLogin(false)} className="text-blue-600 underline">
+                Register
+              </button>
             </>
           ) : (
             <>
               Already have an account?{' '}
-              <button onClick={() => setIsLogin(true)} className="text-blue-600 underline">Login</button>
+              <button onClick={() => setIsLogin(true)} className="text-blue-600 underline">
+                Login
+              </button>
             </>
           )}
         </div>
 
+        {/* Guest login */}
         <div className="text-center mt-4">
           <button
             onClick={onGuest}
-            className="text-gray-700 dark:text-gray-300 text-sm underline"
+            className="text-sm underline text-gray-700 dark:text-gray-300"
           >
             👀 Continue as Guest
           </button>
         </div>
 
-        <div className="text-center mt-2 text-xs text-gray-400">
+        {/* Legal link */}
+        <div className="text-center mt-3 text-xs text-gray-400">
           By continuing, you agree to our{' '}
-          <button onClick={() => setShowLegal(true)} className="underline hover:text-blue-600">
+          <button
+            onClick={() => setShowLegal(true)}
+            className="underline hover:text-blue-600"
+          >
             terms and policy
           </button>
         </div>
 
-        {/* === LEGAL MODAL === */}
+        {/* Legal modal */}
         {showLegal && <LegalDocs onClose={() => setShowLegal(false)} />}
       </div>
     </div>
