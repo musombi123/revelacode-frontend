@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { BookOpen, Search, Menu, Bell, Sun, Moon, UserCircle } from 'lucide-react';
 
 import { useAuth } from '@/context/AuthContext';
-import { useTheme } from '@/hooks/useTheme.tsx';
+import { useTheme } from './hooks/useTheme';
 import DashboardCard from './common/DashboardCard';
 import BackButton from './common/BackButton';
 import Loading from './common/Loading';
